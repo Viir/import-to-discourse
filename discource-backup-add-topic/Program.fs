@@ -1,7 +1,9 @@
-﻿// Learn more about F# at http://fsharp.org
-// See the 'F# Tutorial' project for more help.
+﻿module Main
 
 [<EntryPoint>]
-let main argv = 
+let main argv =
+    let inputFilePath = argv.[0]
+    let outputFilePath = argv.[1]
+    printfn "reading from file: %A" inputFilePath
     printfn "%A" argv
     0 // return an integer exit code
