@@ -111,10 +111,13 @@ let timeString (dateTime:DateTime) =
     //  example taken from discourse backup dump.sql: 2016-09-17 20:31:35.679472
     dateTime.ToString("yyyy-MM-dd HH:mm:ss.ffffff")
 
+let escapedForColumnValue (columnValue:string) =
+    columnValue.Replace("\t", "\\t")
+
 let columnValueForTopic topic columnName =
     match columnName with
         | "user_id" -> topic.userId.ToString()
-        | "title" -> topic.title
+        | "title" -> escapedForColumnValue topic.title
         | "created_at" -> timeString topic.createdAt
         | "last_posted_at" -> timeString topic.lastPostedAt
         | _ -> null
