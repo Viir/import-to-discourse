@@ -107,8 +107,9 @@ let withRecordAddedIdIncrement copySectionOriginal funColumnValueFromName =
         copySectionOriginal
         (fun columnName -> if columnName = idColumnName then (id + 1).ToString() else (funColumnValueFromName columnName))
 
-let timeString dateTime =
-    dateTime.ToString()
+let timeString (dateTime:DateTime) =
+    //  example taken from discourse backup dump.sql: 2016-09-17 20:31:35.679472
+    dateTime.ToString("yyyy-MM-dd HH:mm:ss.ffffff")
 
 let columnValueForTopic topic columnName =
     match columnName with
