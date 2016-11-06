@@ -7,12 +7,12 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3230db21-9969-4406-832b-cfe307904215</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>discource_backup_add_topic</RootNamespace>
-    <AssemblyName>discource_backup_add_topic</AssemblyName>
+    <RootNamespace>discourse_backup_add_topic</RootNamespace>
+    <AssemblyName>discourse_backup_add_topic</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>discource-backup-add-topic</Name>
+    <Name>discourse-backup-add-topic</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\discource_backup_add_topic.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\discourse_backup_add_topic.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -34,7 +34,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\discource_backup_add_topic.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\discourse_backup_add_topic.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>

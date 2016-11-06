@@ -1,4 +1,4 @@
-﻿namespace discource_backup_add_topic.AssemblyInfo
+﻿namespace discourse_backup_add_topic.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -7,11 +7,11 @@ open System.Runtime.InteropServices
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("discource-backup-add-topic")>]
+[<assembly: AssemblyTitle("discourse-backup-add-topic")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]
-[<assembly: AssemblyProduct("discource-backup-add-topic")>]
+[<assembly: AssemblyProduct("discourse-backup-add-topic")>]
 [<assembly: AssemblyCopyright("Copyright ©  2016")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]

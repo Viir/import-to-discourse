@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "discource-backup-add-topic", "discource-backup-add-topic\discource-backup-add-topic.fsproj", "{3230DB21-9969-4406-832B-CFE307904215}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "discourse-backup-add-topic", "discourse-backup-add-topic\discourse-backup-add-topic.fsproj", "{3230DB21-9969-4406-832B-CFE307904215}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
