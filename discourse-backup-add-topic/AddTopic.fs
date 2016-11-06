@@ -11,6 +11,10 @@ let idColumnName = "id"
 
 let topicsTableName = "topics"
 
+let copySectionEndLine = "\\."
+
+let copySectionEndLinePattern = "^" + Regex.Escape(copySectionEndLine)
+
 type Topic =
     {
         userId: int;
@@ -109,19 +113,22 @@ let listColumnValueFromRecordLine (recordLine : string) =
     recordLine.Split([recordValueSeparator] |> List.toArray, System.StringSplitOptions.None)
     |> Array.toList
 
-let indexOfElementMatchingRegexPattern regexPattern list =
+let indexOfFirstElementMatchingRegexPattern regexPattern list =
     list |> List.findIndex (fun elem -> Regex.IsMatch(elem, regexPattern, RegexOptions.IgnoreCase))
 
-let indexOfElementStartingWithRegexPattern regexPattern list =
-    indexOfElementMatchingRegexPattern ("^" + regexPattern) list
+let indexOfLastElementMatchingRegexPattern regexPattern list =
+    list |> List.findIndexBack (fun elem -> Regex.IsMatch(elem, regexPattern, RegexOptions.IgnoreCase))
+
+let copySectionStartLinePattern tableName =
+    "^COPY\s+" + tableName + "\s*\(([^\)]*)\)"
 
 let copySectionFromTableName tableName listLine =
-    let startLinePattern = "COPY\s+" + tableName + "\s*\(([^\)]*)\)"
-    let startLineIndex = listLine |> indexOfElementStartingWithRegexPattern startLinePattern
+    let startLinePattern = copySectionStartLinePattern tableName
+    let startLineIndex = listLine |> indexOfFirstElementMatchingRegexPattern startLinePattern
     let copySectionListLine =
         listLine
         |> List.skip startLineIndex
-        |> List.takeWhile (fun line -> not (Regex.IsMatch(line, "^\\\.")))
+        |> List.takeWhile (fun line -> not (Regex.IsMatch(line, copySectionEndLinePattern)))
 
     let listColumnNameText = Regex.Match(copySectionListLine.Head, startLinePattern).Groups.[1].Value
     let listColumnName =
@@ -150,21 +157,17 @@ let copySectionFromTableName tableName listLine =
         listRecord = listRecord
     }
 
-let withRecordAdded copySectionOriginal funColumnValueFromName =
+let record listColumnName funColumnValueFromName recordId =
     let recordListColumnNameAndValue =
-        copySectionOriginal.listColumnName
+        listColumnName
         |> List.map (fun columnName -> (columnName, funColumnValueFromName columnName))
+
     let recordLine =
         String.Join(recordValueSeparator,
             recordListColumnNameAndValue
             |> List.map snd)
-    {
-        copySectionOriginal
-        with
-            listRecord = List.append copySectionOriginal.listRecord [ recordListColumnNameAndValue ];
-            listLine = List.append copySectionOriginal.listLine [ recordLine ]
-    }
-
+    (recordListColumnNameAndValue, recordLine)
+    
 let escapedForColumnValue (columnValue:string) =
     columnValue.Replace("\t", "\\t")
 
@@ -181,19 +184,41 @@ let columnValueStringFromUnion columnValueUnion =
         | Time t -> timeString t
         | Default -> "DEFAULT"
 
-let withRecordAddedIdIncrement copySectionOriginal funColumnValueFromName =
+let copySectionWithRecords copySectionOriginal funColumnValueFromName listRecordId =
+    let listRecordListColumnNameAndValue =
+        listRecordId
+        |> List.map (fun recordId ->
+            copySectionOriginal.listColumnName
+            |> List.choose (fun columnName ->
+                let columnValue = funColumnValueFromName recordId columnName
+                if columnValue = Default
+                then None
+                else Some (columnName, columnValueStringFromUnion columnValue)))
+
+    let listRecordLine =
+        listRecordListColumnNameAndValue
+        |> List.map (fun record -> String.Join(recordValueSeparator, record |> List.map snd))
+    {
+        copySectionOriginal
+        with
+            listRecord = listRecordListColumnNameAndValue;
+            listLine = listRecordLine
+    }
+
+let copySectionWithRecordsIdIncremented copySectionOriginal funColumnValueFromName listRecordId =
     let id =
         copySectionOriginal.listRecord
         |> List.map (fun record -> record |> List.find (fun (columnName, _) -> columnName = idColumnName))
         |> List.map (fun (_, idString) -> System.Int32.Parse(idString))
         |> List.max
 
-    withRecordAdded
+    copySectionWithRecords
         copySectionOriginal
-        (fun columnName ->
+        (fun recordId columnName ->
             if columnName = idColumnName
-            then (id + 1).ToString()
-            else columnValueStringFromUnion (funColumnValueFromName columnName))
+            then Integer (id + 1)
+            else (funColumnValueFromName recordId columnName))
+        listRecordId
 
 let columnValueForTopic topic columnName =
     let valueStatic =
@@ -217,15 +242,33 @@ let columnValueForTopic topic columnName =
         | _ when valueStatic.IsSome -> snd valueStatic.Value
         | _ -> Default
 
-let withRecordTopicAdded topic copySectionOriginal =
-    withRecordAddedIdIncrement
-        copySectionOriginal (columnValueForTopic topic)
+let copySectionWithTopics (listTopic: List<Topic>) copySectionOriginal =
+    copySectionWithRecordsIdIncremented
+        copySectionOriginal
+        (fun topic -> columnValueForTopic topic)
+        listTopic
 
-let withCopySectionReplaced sectionOriginalTableName sectionReplacement listLine =
-    let copySectionOriginal = listLine |> copySectionFromTableName sectionOriginalTableName
-    let (beforeListLine, afterBefore) = listLine |> List.splitAt copySectionOriginal.startLineIndex
-    let (_, afterListLine) = afterBefore |> List.splitAt copySectionOriginal.listLine.Length
-    [ beforeListLine; sectionReplacement.listLine; afterListLine ]
+let withCopySectionAppended sectionToBeAdded listLine =
+    let tableName = sectionToBeAdded.tableName
+    let copySectionPattern = copySectionStartLinePattern tableName
+    let lastSectionStartLineIndex = listLine |> indexOfLastElementMatchingRegexPattern copySectionPattern
+    let lastSectionLineCount = (listLine |> List.skip lastSectionStartLineIndex |> indexOfFirstElementMatchingRegexPattern copySectionEndLinePattern) + 1
+    let (beforeListLine, afterListLine) = listLine |> List.splitAt (lastSectionStartLineIndex + lastSectionLineCount)
+
+    let listColumnUsedName =
+        sectionToBeAdded.listRecord
+        |> List.collect (fun record -> record |> List.map fst)
+        |> List.distinct
+
+    //  !not implemented: check order of columns!
+
+    let sectionStartLine = "COPY " + tableName + " (" + String.Join(columnNameSeparator, listColumnUsedName) + ") FROM stdin;"
+
+    let sectionToBeAddedListLine =
+        [ [ ""; sectionStartLine ]; sectionToBeAdded.listLine; [ copySectionEndLine ]]
+        |> List.concat
+
+    [ beforeListLine; sectionToBeAddedListLine; afterListLine ]
     |> List.concat
 
 let addTopic postgresqlDump =
@@ -233,9 +276,9 @@ let addTopic postgresqlDump =
 
     let topicsCopySection = listLine |> copySectionFromTableName topicsTableName
 
-    let topicsCopySectionUpdated = topicsCopySection |> withRecordTopicAdded topicToBeAdded
+    let topicsCopySectionAdd = topicsCopySection |> copySectionWithTopics [ topicToBeAdded ]
 
-    let listLineWithTopicAdded = listLine |> withCopySectionReplaced topicsTableName topicsCopySectionUpdated
+    let listLineWithTopicAdded = listLine |> withCopySectionAppended topicsCopySectionAdd
 
     listLineWithTopicAdded |> List.toArray
 
