@@ -17,7 +17,67 @@ type Topic =
         title: string;
         createdAt: DateTime;
         lastPostedAt: DateTime;
+        updatedAt: DateTime;
+        viewCount: int;
+        postCount: int;
+        lastPostUserId: int;
+        replyCount: int;
+        highestPostNumber: int;
+        categoryId: int;
+        isClosed: bool;
+        slug: string;
     }
+
+type columnValue =
+    | Null
+    | Boolean of bool
+    | Integer of int
+    | String of string
+    | Time of DateTime
+    | Default
+
+let setColumnValueStatic =
+    [
+        ("featured_user1_id", Null);
+        ("featured_user2_id", Null);
+        ("featured_user3_id", Null);
+        ("avg_time", Null);
+        ("deleted_at", Null);
+        ("image_url", Null);
+        ("off_topic_count", Default);
+        ("like_count", Default);
+        ("incoming_link_count", Default);
+        ("bookmark_count", Default);
+        ("archived", Boolean false);
+        ("bumped_at", Time DateTime.MinValue);
+        ("has_summary", Boolean false);
+        ("vote_count", Default);
+        ("archetype", Default);
+        ("featured_user4_id", Null);
+        ("notify_moderators_count", Default);
+        ("spam_count", Default);
+        ("illegal_count", Default);
+        ("inappropriate_count", Default);
+        ("pinned_at", Null);
+        ("score", Null);
+        ("percent_rank", Default);
+        ("notify_user_count", Default);
+        ("subtype", Null);
+        ("auto_close_at", Null);
+        ("auto_close_user_id", Null);
+        ("auto_close_started_at", Null);
+        ("deleted_by_id", Null);
+        ("participant_count", Default);
+        ("word_count", Null);
+        ("excerpt", Null);
+        ("pinned_globally", Default);
+        ("auto_close_based_on_last_post", Default);
+        ("auto_close_hours", Null);
+        ("pinned_until", Null);
+        ("fancy_title", Null);
+
+        ("", Default);
+    ]
 
 let topicToBeAdded =
     {
@@ -25,6 +85,15 @@ let topicToBeAdded =
         title = "topic which has been added by import tool";
         createdAt = DateTime.UtcNow;
         lastPostedAt = DateTime.UtcNow;
+        updatedAt = DateTime.MinValue;
+        viewCount = 4;
+        postCount = 0;
+        lastPostUserId = -1;
+        replyCount = 0;
+        highestPostNumber = 0;
+        categoryId = 0;
+        isClosed = false;
+        slug = "this-is-the-imported-topics-slug";
     }
 
 type CopySection =
@@ -96,6 +165,22 @@ let withRecordAdded copySectionOriginal funColumnValueFromName =
             listLine = List.append copySectionOriginal.listLine [ recordLine ]
     }
 
+let escapedForColumnValue (columnValue:string) =
+    columnValue.Replace("\t", "\\t")
+
+let timeString (dateTime:DateTime) =
+    //  example taken from discourse backup dump.sql: 2016-09-17 20:31:35.679472
+    dateTime.ToString("yyyy-MM-dd HH:mm:ss.ffffff")
+
+let columnValueStringFromUnion columnValueUnion =
+    match columnValueUnion with
+        | Null -> "\\N"
+        | Boolean b -> if b then "t" else "f"
+        | Integer i -> i.ToString()
+        | String s -> escapedForColumnValue s
+        | Time t -> timeString t
+        | Default -> "DEFAULT"
+
 let withRecordAddedIdIncrement copySectionOriginal funColumnValueFromName =
     let id =
         copySectionOriginal.listRecord
@@ -105,22 +190,32 @@ let withRecordAddedIdIncrement copySectionOriginal funColumnValueFromName =
 
     withRecordAdded
         copySectionOriginal
-        (fun columnName -> if columnName = idColumnName then (id + 1).ToString() else (funColumnValueFromName columnName))
-
-let timeString (dateTime:DateTime) =
-    //  example taken from discourse backup dump.sql: 2016-09-17 20:31:35.679472
-    dateTime.ToString("yyyy-MM-dd HH:mm:ss.ffffff")
-
-let escapedForColumnValue (columnValue:string) =
-    columnValue.Replace("\t", "\\t")
+        (fun columnName ->
+            if columnName = idColumnName
+            then (id + 1).ToString()
+            else columnValueStringFromUnion (funColumnValueFromName columnName))
 
 let columnValueForTopic topic columnName =
+    let valueStatic =
+        setColumnValueStatic
+        |> List.tryFind (fun columnNameAndValue -> (fst columnNameAndValue) = columnName)
+
     match columnName with
-        | "user_id" -> topic.userId.ToString()
-        | "title" -> escapedForColumnValue topic.title
-        | "created_at" -> timeString topic.createdAt
-        | "last_posted_at" -> timeString topic.lastPostedAt
-        | _ -> null
+        | "user_id" -> Integer topic.userId
+        | "title" -> String topic.title
+        | "created_at" -> Time topic.createdAt
+        | "last_posted_at" -> Time topic.lastPostedAt
+        | "updated_at" -> Time topic.updatedAt
+        | "views" -> Integer topic.viewCount
+        | "posts_count" -> Integer topic.postCount
+        | "last_post_user_id" -> Integer topic.lastPostUserId
+        | "reply_count" -> Integer topic.replyCount
+        | "highest_post_number" -> Integer topic.highestPostNumber
+        | "category_id" -> Integer topic.categoryId
+        | "closed" -> Boolean topic.isClosed
+        | "slug" -> String topic.slug
+        | _ when valueStatic.IsSome -> snd valueStatic.Value
+        | _ -> Default
 
 let withRecordTopicAdded topic copySectionOriginal =
     withRecordAddedIdIncrement
