@@ -48,6 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Model.fs" />
+    <Compile Include="Model.Topic.fs" />
     <Compile Include="AddTopic.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
