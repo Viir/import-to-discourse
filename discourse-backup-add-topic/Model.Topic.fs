@@ -4,6 +4,7 @@ open Model
 
 type Topic =
     {
+        id: int;
         userId: int;
         title: string;
         createdAt: System.DateTime;
@@ -64,6 +65,7 @@ let setColumnValueStatic =
 
 let columnValueForTopic topic columnName =
     match columnName with
+        | "id" -> Integer topic.id
         | "user_id" -> Integer topic.userId
         | "title" -> String topic.title
         | "created_at" -> Time topic.createdAt

@@ -20,6 +20,7 @@ let copySectionEndLinePattern = "^" + Regex.Escape(copySectionEndLine)
 
 let topicToBeAdded =
     {
+        id = 1000;
         userId = -1;
         title = "topic which has been added by import tool";
         createdAt = DateTime.UtcNow;
@@ -140,23 +141,8 @@ let copySectionWithRecords copySectionOriginal funColumnValueFromName listRecord
             listLine = listRecordLine
     }
 
-let copySectionWithRecordsIdIncremented copySectionOriginal funColumnValueFromName listRecordId =
-    let id =
-        copySectionOriginal.listRecord
-        |> List.map (fun record -> record |> List.find (fun (columnName, _) -> columnName = idColumnName))
-        |> List.map (fun (_, idString) -> System.Int32.Parse(idString))
-        |> List.max
-
-    copySectionWithRecords
-        copySectionOriginal
-        (fun recordId columnName ->
-            if columnName = idColumnName
-            then Integer (id + 1)
-            else (funColumnValueFromName recordId columnName))
-        listRecordId
-
 let copySectionWithTopics (listTopic: List<Topic>) copySectionOriginal =
-    copySectionWithRecordsIdIncremented
+    copySectionWithRecords
         copySectionOriginal
         (fun topic -> columnValueForTopicWithDefaults topic)
         listTopic
