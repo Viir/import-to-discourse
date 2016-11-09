@@ -9,6 +9,9 @@ let main argv =
     
     printfn "reading from file: %A" inputFilePath
     
+    printfn "press key to continue"
+    System.Console.ReadKey() |> ignore
+    
     let sqlDumpListLine = File.ReadAllLines(inputFilePath)
 
     let modifiedDump = AddRecord.addRecord sqlDumpListLine
