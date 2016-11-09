@@ -17,3 +17,8 @@ let columnValueWithDefaults (defaults : (string * columnValue) list) callbackNoD
     if valueFromDefault.IsSome
     then snd valueFromDefault.Value
     else callbackNoDefault columnName
+
+
+let dateTimeOptionAsColumnValue (dateTime: System.DateTime Option) =
+    if dateTime.IsSome then Time dateTime.Value else Null
+

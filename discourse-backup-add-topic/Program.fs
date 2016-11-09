@@ -11,7 +11,7 @@ let main argv =
     
     let sqlDumpListLine = File.ReadAllLines(inputFilePath)
 
-    let modifiedDump = AddTopic.addTopic sqlDumpListLine
+    let modifiedDump = AddRecord.addRecord sqlDumpListLine
 
     printfn "writing to file: %A" outputFilePath
     

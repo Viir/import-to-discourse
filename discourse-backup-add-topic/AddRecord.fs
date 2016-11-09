@@ -1,10 +1,11 @@
-﻿module AddTopic
+﻿module AddRecord
 
 open System
 open System.Linq
 open System.Text.RegularExpressions
 
 open Model
+open ModelUser
 open ModelTopic
 
 let recordValueSeparator = "\t"
@@ -12,11 +13,28 @@ let columnNameSeparator = ","
 
 let idColumnName = "id"
 
-let topicsTableName = "topics"
+let userTableName = "users"
+let userStatsTableName = "user_stats"
+let topicTableName = "topics"
 
 let copySectionEndLine = "\\."
 
 let copySectionEndLinePattern = "^" + Regex.Escape(copySectionEndLine)
+
+let userToBeAdded =
+    {
+        id = 1000;
+        username = "username-added-by-import";
+        createdAt = DateTime.UtcNow;
+        updatedAt = DateTime.MinValue;
+        name = "name-added-by-import";
+        email = "user-added-by-import@viir.de";
+        last_posted_at = None;
+        last_seen_at = None;
+        trust_level = 0;
+        registration_ip_address = null;
+        first_seen_at = None;
+    }
 
 let topicToBeAdded =
     {
@@ -116,7 +134,10 @@ let columnValueStringFromUnion columnValueUnion =
         | Null -> "\\N"
         | Boolean b -> if b then "t" else "f"
         | Integer i -> i.ToString()
-        | String s -> escapedForColumnValue s
+        | String s ->
+            match s with
+            | null -> "\\N"
+            | _ -> escapedForColumnValue s
         | Time t -> timeString t
         | Default -> "DEFAULT"
 
@@ -140,6 +161,25 @@ let copySectionWithRecords copySectionOriginal funColumnValueFromName listRecord
             listRecord = listRecordListColumnNameAndValue;
             listLine = listRecordLine
     }
+
+let copySectionWithUsers (listUser: List<User>) copySectionOriginal =
+    copySectionWithRecords
+        copySectionOriginal
+        (fun user -> columnValueForUserWithDefaults user)
+        listUser
+
+let userStatsFromUser (user:User) =
+    {
+        user_id = user.id;
+        new_since = DateTime.MinValue;
+    }
+    : UserStats
+
+let copySectionWithUserStats (listUser: List<User>) copySectionOriginal =
+    copySectionWithRecords
+        copySectionOriginal
+        (fun user -> columnValueForUserStatsWithDefaults (userStatsFromUser user))
+        listUser
 
 let copySectionWithTopics (listTopic: List<Topic>) copySectionOriginal =
     copySectionWithRecords
@@ -170,14 +210,16 @@ let withCopySectionAppended sectionToBeAdded listLine =
     [ beforeListLine; sectionToBeAddedListLine; afterListLine ]
     |> List.concat
 
-let addTopic postgresqlDump =
+let addRecord postgresqlDump =
     let listLine = postgresqlDump |> Array.toList
 
-    let topicsCopySection = listLine |> copySectionFromTableName topicsTableName
+    let userCopySection = listLine |> copySectionFromTableName userTableName
+    let userCopySectionAdd = userCopySection |> copySectionWithUsers [ userToBeAdded ]
+    let listLineWithUserAdded = listLine |> withCopySectionAppended userCopySectionAdd
 
-    let topicsCopySectionAdd = topicsCopySection |> copySectionWithTopics [ topicToBeAdded ]
+    let userStatsCopySection = listLineWithUserAdded |> copySectionFromTableName userStatsTableName
+    let userStatsCopySectionAdd = userStatsCopySection |> copySectionWithUserStats [ userToBeAdded ]
+    let listLineWithUserStatsAdded = listLineWithUserAdded |> withCopySectionAppended userStatsCopySectionAdd
 
-    let listLineWithTopicAdded = listLine |> withCopySectionAppended topicsCopySectionAdd
-
-    listLineWithTopicAdded |> List.toArray
+    listLineWithUserStatsAdded |> List.toArray
 
