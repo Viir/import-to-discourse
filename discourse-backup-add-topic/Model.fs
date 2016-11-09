@@ -22,3 +22,13 @@ let columnValueWithDefaults (defaults : (string * columnValue) list) callbackNoD
 let dateTimeOptionAsColumnValue (dateTime: System.DateTime Option) =
     if dateTime.IsSome then Time dateTime.Value else Null
 
+
+let valueFromColumnName (record : (string * string) list) columnName =
+    let column =
+        record
+        |> List.tryFind (fun (candidateColumnName, value) -> candidateColumnName = columnName)
+
+    match column with
+    | Some value -> snd value
+    | _ -> null
+
