@@ -14,6 +14,8 @@ let columnNameSeparator = ","
 let idColumnName = "id"
 
 let userTableName = "users"
+let userOptionsTableName = "user_options"
+let userProfilesTableName = "user_profiles"
 let userStatsTableName = "user_stats"
 let topicTableName = "topics"
 
@@ -34,6 +36,9 @@ let userToBeAdded =
         trust_level = 0;
         registration_ip_address = null;
         first_seen_at = None;
+
+        profile_location = "profile location";
+        profile_website = "http://distilledgames.de";
     }
 
 let topicToBeAdded =
@@ -168,17 +173,22 @@ let copySectionWithUsers (listUser: List<User>) copySectionOriginal =
         (fun user -> columnValueForUserWithDefaults user)
         listUser
 
-let userStatsFromUser (user:User) =
-    {
-        user_id = user.id;
-        new_since = DateTime.MinValue;
-    }
-    : UserStats
+let copySectionWithUserOptions (listUser: List<User>) copySectionOriginal =
+    copySectionWithRecords
+        copySectionOriginal
+        (fun user -> columnValueForUserOptionsWithDefaults user)
+        listUser
+
+let copySectionWithUserProfiles (listUser: List<User>) copySectionOriginal =
+    copySectionWithRecords
+        copySectionOriginal
+        (fun user -> columnValueForUserProfile user)
+        listUser
 
 let copySectionWithUserStats (listUser: List<User>) copySectionOriginal =
     copySectionWithRecords
         copySectionOriginal
-        (fun user -> columnValueForUserStatsWithDefaults (userStatsFromUser user))
+        (fun user -> columnValueForUserStatsWithDefaults user)
         listUser
 
 let copySectionWithTopics (listTopic: List<Topic>) copySectionOriginal =
@@ -210,16 +220,24 @@ let withCopySectionAppended sectionToBeAdded listLine =
     [ beforeListLine; sectionToBeAddedListLine; afterListLine ]
     |> List.concat
 
+let listTransform =
+    [
+        (userTableName, (copySectionWithUsers [ userToBeAdded ]));
+        (userOptionsTableName, (copySectionWithUserOptions [ userToBeAdded ]));
+        (userProfilesTableName, (copySectionWithUserProfiles [ userToBeAdded ]));
+        (userStatsTableName, (copySectionWithUserStats [ userToBeAdded ]));
+    ]
+
 let addRecord postgresqlDump =
     let listLine = postgresqlDump |> Array.toList
 
-    let userCopySection = listLine |> copySectionFromTableName userTableName
-    let userCopySectionAdd = userCopySection |> copySectionWithUsers [ userToBeAdded ]
-    let listLineWithUserAdded = listLine |> withCopySectionAppended userCopySectionAdd
+    let listLineWithRecordsAppended =
+        List.fold (fun state (tableName, t) ->
+            let copySection = state |> copySectionFromTableName tableName
+            let copySectionAdd = copySection |> t
+            state |> withCopySectionAppended copySectionAdd)
+            listLine
+            listTransform
 
-    let userStatsCopySection = listLineWithUserAdded |> copySectionFromTableName userStatsTableName
-    let userStatsCopySectionAdd = userStatsCopySection |> copySectionWithUserStats [ userToBeAdded ]
-    let listLineWithUserStatsAdded = listLineWithUserAdded |> withCopySectionAppended userStatsCopySectionAdd
-
-    listLineWithUserStatsAdded |> List.toArray
+    listLineWithRecordsAppended |> List.toArray
 
