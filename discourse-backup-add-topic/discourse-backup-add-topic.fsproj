@@ -48,9 +48,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Model.fs" />
-    <Compile Include="Model.User.fs" />
-    <Compile Include="Model.Topic.fs" />
+    <Compile Include="Discourse.DbModel.Common.fs" />
+    <Compile Include="Discourse.DbModel.User.fs" />
+    <Compile Include="Discourse.DbModel.Topic.fs" />
     <Compile Include="AddRecord.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />

@@ -4,9 +4,9 @@ open System
 open System.Linq
 open System.Text.RegularExpressions
 
-open Model
-open ModelUser
-open ModelTopic
+open Discourse.DbModel.Common
+open Discourse.DbModel.User
+open Discourse.DbModel.Topic
 
 let recordValueSeparator = "\t"
 let columnNameSeparator = ","

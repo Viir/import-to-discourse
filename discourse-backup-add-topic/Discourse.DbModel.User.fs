@@ -1,6 +1,6 @@
-﻿module ModelUser
+﻿module Discourse.DbModel.User
 
-open Model
+open Discourse.DbModel.Common
 
 (*
 Schema from backup from v1.7.0.beta7 +27

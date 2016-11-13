@@ -1,4 +1,4 @@
-﻿module Model
+﻿module Discourse.DbModel.Common
 
 type columnValue =
     | Null

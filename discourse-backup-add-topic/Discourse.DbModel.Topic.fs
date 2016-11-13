@@ -1,6 +1,6 @@
-﻿module ModelTopic
+﻿module Discourse.DbModel.Topic
 
-open Model
+open Discourse.DbModel.Common
 
 (*
 Schema from backup from v1.7.0.beta7 +27
