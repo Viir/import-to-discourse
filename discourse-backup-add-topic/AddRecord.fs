@@ -201,47 +201,11 @@ let copySectionWithRecords copySectionOriginal funColumnValueFromName listRecord
             listLine = listRecordLine
     }
 
-let copySectionWithUsers (listUser: List<User>) copySectionOriginal =
+let copySectionFromListRecord columnValueFromRecord listRecord copySectionOriginal =
     copySectionWithRecords
         copySectionOriginal
-        (fun user -> columnValueForUserWithDefaults user)
-        listUser
-
-let copySectionWithUserOptions (listUser: List<User>) copySectionOriginal =
-    copySectionWithRecords
-        copySectionOriginal
-        (fun user -> columnValueForUserOptionsWithDefaults user)
-        listUser
-
-let copySectionWithUserProfiles (listUser: List<User>) copySectionOriginal =
-    copySectionWithRecords
-        copySectionOriginal
-        (fun user -> columnValueForUserProfile user)
-        listUser
-
-let copySectionWithUserStats (listUser: List<User>) copySectionOriginal =
-    copySectionWithRecords
-        copySectionOriginal
-        (fun user -> columnValueForUserStatsWithDefaults user)
-        listUser
-
-let copySectionWithListCategory (listCategory: List<Category>) copySectionOriginal =
-    copySectionWithRecords
-        copySectionOriginal
-        (fun category -> columnValueForCategory category)
-        listCategory
-
-let copySectionWithListTopic (listTopic: List<Topic>) copySectionOriginal =
-    copySectionWithRecords
-        copySectionOriginal
-        (fun topic -> columnValueForTopicWithDefaults topic)
-        listTopic
-
-let copySectionWithListPost (listPost: Post list) copySectionOriginal =
-    copySectionWithRecords
-        copySectionOriginal
-        (fun post -> columnValueForPost post)
-        listPost
+        (fun record -> columnValueFromRecord record)
+        listRecord
 
 let withCopySectionAppended sectionToBeAdded listLine =
     let tableName = sectionToBeAdded.tableName
@@ -268,15 +232,16 @@ let withCopySectionAppended sectionToBeAdded listLine =
 
 let listTransform =
     [
-(*
-        (userTableName, (copySectionWithUsers [ userToBeAdded ]));
-        (userOptionsTableName, (copySectionWithUserOptions [ userToBeAdded ]));
-        (userProfilesTableName, (copySectionWithUserProfiles [ userToBeAdded ]));
-        (userStatsTableName, (copySectionWithUserStats [ userToBeAdded ]));
-*)
-        (categoryTableName, (copySectionWithListCategory [ categoryToBeAdded ]));
-        (topicTableName, (copySectionWithListTopic [ topicToBeAdded ]));
-        (postTableName, (copySectionWithListPost [ postToBeAdded ]));
+        (userTableName, (copySectionFromListRecord columnValueForUserWithDefaults [ userToBeAdded ]));
+        (userOptionsTableName, (copySectionFromListRecord columnValueForUserOptionsWithDefaults [ userToBeAdded ]));
+        (userProfilesTableName, (copySectionFromListRecord columnValueForUserProfile [ userToBeAdded ]));
+        (userStatsTableName, (copySectionFromListRecord columnValueForUserStatsWithDefaults [ userToBeAdded ]));
+
+        (categoryTableName, (copySectionFromListRecord columnValueForCategory [ categoryToBeAdded ]));
+
+        (topicTableName, (copySectionFromListRecord columnValueForTopicWithDefaults [ topicToBeAdded ]));
+
+        (postTableName, (copySectionFromListRecord columnValueForPost [ postToBeAdded ]));
     ]
 
 let addRecord postgresqlDump =
