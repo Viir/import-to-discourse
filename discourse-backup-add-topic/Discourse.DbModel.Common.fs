@@ -19,9 +19,15 @@ let columnValueWithDefaults (defaults : (string * columnValue) list) callbackNoD
     else callbackNoDefault columnName
 
 
-let dateTimeOptionAsColumnValue (dateTime: System.DateTime Option) =
-    if dateTime.IsSome then Time dateTime.Value else Null
+let intOptionAsColumnValue (intOption: int Option) =
+    match intOption with
+    | Some integer -> Integer integer
+    | _ -> Null
 
+let dateTimeOptionAsColumnValue (dateTimeOption: System.DateTime Option) =
+    match dateTimeOption with
+    | Some dateTime -> Time dateTime
+    | _ -> Null
 
 let valueFromColumnName (record : (string * string) list) columnName =
     let column =

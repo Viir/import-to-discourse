@@ -7,6 +7,7 @@ open System.Text.RegularExpressions
 open Discourse.DbModel.Common
 open Discourse.DbModel.User
 open Discourse.DbModel.Topic
+open Discourse.DbModel.Post
 
 let recordValueSeparator = "\t"
 let columnNameSeparator = ","
@@ -18,6 +19,7 @@ let userOptionsTableName = "user_options"
 let userProfilesTableName = "user_profiles"
 let userStatsTableName = "user_stats"
 let topicTableName = "topics"
+let postTableName = "posts"
 
 let copySectionEndLine = "\\."
 
@@ -43,7 +45,7 @@ let userToBeAdded =
 
 let topicToBeAdded =
     {
-        id = 1000;
+        id = 1010;
         userId = -1;
         title = "topic which has been added by import tool";
         createdAt = DateTime.UtcNow;
@@ -58,6 +60,23 @@ let topicToBeAdded =
         isClosed = false;
         archetype = Regular;
         slug = "this-is-the-imported-topics-slug";
+    }
+
+let postToBeAdded =
+    {
+        id = 1010;
+        user_id = Some 1000;
+        topic_id = 1010;
+        post_number = 0;
+        raw = "raw text of post\nother line";
+        cooked = "this is the cooked version<br><pre><code class=\"clojure\">(def comment \"text in here should be transformed by highlight.js\")\n\n(def ^:dynamic chunk-size 17)</code></pre><br><p style=\"color:#b98686;\">colored <b>bold</b> text</p>";
+        created_at = DateTime.UtcNow;
+        updated_at = DateTime.MinValue;
+        reply_to_post_number = None;
+        deleted_at = None;
+        reads = 0;
+        last_editor_id = None;
+        last_version_at = DateTime.MinValue;
     }
 
 type CopySection =
@@ -127,9 +146,9 @@ let record listColumnName funColumnValueFromName recordId =
             recordListColumnNameAndValue
             |> List.map snd)
     (recordListColumnNameAndValue, recordLine)
-    
+
 let escapedForColumnValue (columnValue:string) =
-    columnValue.Replace("\t", "\\t")
+    columnValue.Replace("\t", "\\t").Replace("\n", "\\n")
 
 let timeString (dateTime:DateTime) =
     //  example taken from discourse backup dump.sql: 2016-09-17 20:31:35.679472
@@ -192,11 +211,17 @@ let copySectionWithUserStats (listUser: List<User>) copySectionOriginal =
         (fun user -> columnValueForUserStatsWithDefaults user)
         listUser
 
-let copySectionWithTopics (listTopic: List<Topic>) copySectionOriginal =
+let copySectionWithListTopic (listTopic: List<Topic>) copySectionOriginal =
     copySectionWithRecords
         copySectionOriginal
         (fun topic -> columnValueForTopicWithDefaults topic)
         listTopic
+
+let copySectionWithListPost (listPost: Post list) copySectionOriginal =
+    copySectionWithRecords
+        copySectionOriginal
+        (fun post -> columnValueForPost post)
+        listPost
 
 let withCopySectionAppended sectionToBeAdded listLine =
     let tableName = sectionToBeAdded.tableName
@@ -223,10 +248,14 @@ let withCopySectionAppended sectionToBeAdded listLine =
 
 let listTransform =
     [
+(*
         (userTableName, (copySectionWithUsers [ userToBeAdded ]));
         (userOptionsTableName, (copySectionWithUserOptions [ userToBeAdded ]));
         (userProfilesTableName, (copySectionWithUserProfiles [ userToBeAdded ]));
         (userStatsTableName, (copySectionWithUserStats [ userToBeAdded ]));
+*)
+        (topicTableName, (copySectionWithListTopic [ topicToBeAdded ]));
+        (postTableName, (copySectionWithListPost [ postToBeAdded ]));
     ]
 
 let addRecord postgresqlDump =
