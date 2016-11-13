@@ -2,6 +2,74 @@
 
 open Model
 
+(*
+Schema from backup from v1.7.0.beta7 +27
+
+--
+-- TOC entry 422 (class 1259 OID 57981)
+-- Name: topics; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE topics (
+    id integer NOT NULL,
+    title character varying NOT NULL,
+    last_posted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    views integer DEFAULT 0 NOT NULL,
+    posts_count integer DEFAULT 0 NOT NULL,
+    user_id integer,
+    last_post_user_id integer NOT NULL,
+    reply_count integer DEFAULT 0 NOT NULL,
+    featured_user1_id integer,
+    featured_user2_id integer,
+    featured_user3_id integer,
+    avg_time integer,
+    deleted_at timestamp without time zone,
+    highest_post_number integer DEFAULT 0 NOT NULL,
+    image_url character varying,
+    off_topic_count integer DEFAULT 0 NOT NULL,
+    like_count integer DEFAULT 0 NOT NULL,
+    incoming_link_count integer DEFAULT 0 NOT NULL,
+    bookmark_count integer DEFAULT 0 NOT NULL,
+    category_id integer,
+    visible boolean DEFAULT true NOT NULL,
+    moderator_posts_count integer DEFAULT 0 NOT NULL,
+    closed boolean DEFAULT false NOT NULL,
+    archived boolean DEFAULT false NOT NULL,
+    bumped_at timestamp without time zone NOT NULL,
+    has_summary boolean DEFAULT false NOT NULL,
+    vote_count integer DEFAULT 0 NOT NULL,
+    archetype character varying DEFAULT 'regular'::character varying NOT NULL,
+    featured_user4_id integer,
+    notify_moderators_count integer DEFAULT 0 NOT NULL,
+    spam_count integer DEFAULT 0 NOT NULL,
+    illegal_count integer DEFAULT 0 NOT NULL,
+    inappropriate_count integer DEFAULT 0 NOT NULL,
+    pinned_at timestamp without time zone,
+    score double precision,
+    percent_rank double precision DEFAULT 1.0 NOT NULL,
+    notify_user_count integer DEFAULT 0 NOT NULL,
+    subtype character varying,
+    slug character varying,
+    auto_close_at timestamp without time zone,
+    auto_close_user_id integer,
+    auto_close_started_at timestamp without time zone,
+    deleted_by_id integer,
+    participant_count integer DEFAULT 1,
+    word_count integer,
+    excerpt character varying(1000),
+    pinned_globally boolean DEFAULT false NOT NULL,
+    auto_close_based_on_last_post boolean DEFAULT false,
+    auto_close_hours double precision,
+    pinned_until timestamp without time zone,
+    fancy_title character varying(400),
+    CONSTRAINT has_category_id CHECK (((category_id IS NOT NULL) OR ((archetype)::text <> 'regular'::text))),
+    CONSTRAINT pm_has_no_category CHECK (((category_id IS NULL) OR ((archetype)::text <> 'private_message'::text)))
+);
+
+*)
+
 type Topic =
     {
         id: int;
