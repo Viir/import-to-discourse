@@ -50,6 +50,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Discourse.DbModel.Common.fs" />
     <Compile Include="Discourse.DbModel.User.fs" />
+    <Compile Include="Discourse.DbModel.Category.fs" />
     <Compile Include="Discourse.DbModel.Topic.fs" />
     <Compile Include="Discourse.DbModel.Post.fs" />
     <Compile Include="AddRecord.fs" />

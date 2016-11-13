@@ -87,7 +87,7 @@ type Topic =
         lastPostUserId: int;
         replyCount: int;
         highestPostNumber: int;
-        categoryId: int;
+        categoryId: int Option;
         isClosed: bool;
         archetype: TopicArchetype;
         slug: string;
@@ -154,7 +154,7 @@ let columnValueForTopic topic columnName =
         | "last_post_user_id" -> Integer topic.lastPostUserId
         | "reply_count" -> Integer topic.replyCount
         | "highest_post_number" -> Integer topic.highestPostNumber
-        | "category_id" -> Integer topic.categoryId
+        | "category_id" -> intOptionAsColumnValue topic.categoryId
         | "closed" -> Boolean topic.isClosed
         | "archetype" -> stringFromTopicArchetype topic.archetype
         | "slug" -> String topic.slug

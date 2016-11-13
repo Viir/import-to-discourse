@@ -6,6 +6,7 @@ open System.Text.RegularExpressions
 
 open Discourse.DbModel.Common
 open Discourse.DbModel.User
+open Discourse.DbModel.Category
 open Discourse.DbModel.Topic
 open Discourse.DbModel.Post
 
@@ -18,6 +19,7 @@ let userTableName = "users"
 let userOptionsTableName = "user_options"
 let userProfilesTableName = "user_profiles"
 let userStatsTableName = "user_stats"
+let categoryTableName = "categories"
 let topicTableName = "topics"
 let postTableName = "posts"
 
@@ -43,6 +45,18 @@ let userToBeAdded =
         profile_website = "http://distilledgames.de";
     }
 
+let categoryToBeAdded =
+    {
+        id = 1010;
+        name = "Category added by import tool";
+        description = "Description of category added by import tool";
+        user_id = -1;
+        parent_category_id = Some 3;
+        created_at = DateTime.UtcNow;
+        updated_at = DateTime.UtcNow;
+        slug = "slug-of-category-added-by-import-tool";
+    }
+
 let topicToBeAdded =
     {
         id = 1010;
@@ -56,7 +70,7 @@ let topicToBeAdded =
         lastPostUserId = -1;
         replyCount = 0;
         highestPostNumber = 0;
-        categoryId = 0;
+        categoryId = Some 1010;
         isClosed = false;
         archetype = Regular;
         slug = "this-is-the-imported-topics-slug";
@@ -211,6 +225,12 @@ let copySectionWithUserStats (listUser: List<User>) copySectionOriginal =
         (fun user -> columnValueForUserStatsWithDefaults user)
         listUser
 
+let copySectionWithListCategory (listCategory: List<Category>) copySectionOriginal =
+    copySectionWithRecords
+        copySectionOriginal
+        (fun category -> columnValueForCategory category)
+        listCategory
+
 let copySectionWithListTopic (listTopic: List<Topic>) copySectionOriginal =
     copySectionWithRecords
         copySectionOriginal
@@ -254,6 +274,7 @@ let listTransform =
         (userProfilesTableName, (copySectionWithUserProfiles [ userToBeAdded ]));
         (userStatsTableName, (copySectionWithUserStats [ userToBeAdded ]));
 *)
+        (categoryTableName, (copySectionWithListCategory [ categoryToBeAdded ]));
         (topicTableName, (copySectionWithListTopic [ topicToBeAdded ]));
         (postTableName, (copySectionWithListPost [ postToBeAdded ]));
     ]
