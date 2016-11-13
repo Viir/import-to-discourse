@@ -70,6 +70,10 @@ CREATE TABLE topics (
 
 *)
 
+type TopicArchetype =
+    | Regular
+    | PrivateMessage
+
 type Topic =
     {
         id: int;
@@ -85,6 +89,7 @@ type Topic =
         highestPostNumber: int;
         categoryId: int;
         isClosed: bool;
+        archetype: TopicArchetype;
         slug: string;
     }
 
@@ -131,6 +136,11 @@ let setColumnValueStatic =
         ("", Default);
     ]
 
+let stringFromTopicArchetype archetype =
+    match archetype with
+    | Regular -> String "regular"
+    | PrivateMessage -> String "private_message"
+
 let columnValueForTopic topic columnName =
     match columnName with
         | "id" -> Integer topic.id
@@ -146,6 +156,7 @@ let columnValueForTopic topic columnName =
         | "highest_post_number" -> Integer topic.highestPostNumber
         | "category_id" -> Integer topic.categoryId
         | "closed" -> Boolean topic.isClosed
+        | "archetype" -> stringFromTopicArchetype topic.archetype
         | "slug" -> String topic.slug
         | _ -> Default
 

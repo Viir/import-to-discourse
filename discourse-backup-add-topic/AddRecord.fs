@@ -56,6 +56,7 @@ let topicToBeAdded =
         highestPostNumber = 0;
         categoryId = 0;
         isClosed = false;
+        archetype = Regular;
         slug = "this-is-the-imported-topics-slug";
     }
 
