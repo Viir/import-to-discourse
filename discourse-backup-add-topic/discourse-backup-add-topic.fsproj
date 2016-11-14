@@ -45,6 +45,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
@@ -53,9 +54,11 @@
     <Compile Include="Discourse.DbModel.Category.fs" />
     <Compile Include="Discourse.DbModel.Topic.fs" />
     <Compile Include="Discourse.DbModel.Post.fs" />
+    <Compile Include="Import.mvcforum.fs" />
     <Compile Include="AddRecord.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
+    <None Include="MvcForum.Export.To.Xml.sql" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
