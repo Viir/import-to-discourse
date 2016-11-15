@@ -5,6 +5,7 @@ open System.Linq
 open System.Xml
 
 let userXPath = "//SetMembershipUser/MembershipUser"
+let categoryXPath = "//SetCategory/Category"
 
 type User = 
     {
@@ -15,6 +16,17 @@ type User =
         LastLoginDate : System.DateTime Option;
         LastActivityDate : System.DateTime Option;
         Slug : string;
+    }
+
+type Category = 
+    {
+        Id : string;
+        Name : string;
+        Description : string;
+        DateCreated : System.DateTime;
+        PageTitle : string;
+        Slug : string;
+        Category_Id : string;
     }
 
 let dictWithIndexAsKey listRecord =
@@ -42,9 +54,8 @@ let userFromXmlElement (xmlElement : XmlElement) =
     let getColumnTimeValue columnName = DateTime.Parse (getColumnValue columnName)
     let getColumnTimeOptionValue columnName = parseTimeOption (getColumnValue columnName)
 
-    let id = getColumnValue "Id"
     {
-        Id = id;
+        Id = getColumnValue "Id"
         UserName = getColumnValue "UserName"
         Email = getColumnValue "Email"
         CreateDate = getColumnTimeValue "CreateDate"
@@ -53,6 +64,22 @@ let userFromXmlElement (xmlElement : XmlElement) =
         Slug = getColumnValue "Slug"
     }
 
+let categoryFromXmlElement (xmlElement : XmlElement) =
+    let getColumnValue = getValueFromSingleChildElementWithName xmlElement
+    let getColumnTimeValue columnName = DateTime.Parse (getColumnValue columnName)
+    let getColumnTimeOptionValue columnName = parseTimeOption (getColumnValue columnName)
+
+    {
+        Id = getColumnValue "Id"
+        Name = getColumnValue "Name"
+        Description = getColumnValue "Description"
+        DateCreated = getColumnTimeValue "DateCreated"
+        PageTitle = getColumnValue "PageTitle"
+        Slug = getColumnValue "Slug"
+        Category_Id = getColumnValue "Category_Id"
+    }
+
+
 let import filePath =
     let fileStream = new System.IO.FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read)
 
@@ -60,11 +87,16 @@ let import filePath =
 
     xmlDocument.Load(fileStream)
 
-    let setUserXmlNode = xmlDocument.SelectNodes(userXPath).OfType<XmlElement>() |> List.ofSeq
+    let setRecordFromXPathAndRecordConstructor xPath recordConstructor =
+        xmlDocument.SelectNodes(xPath).OfType<XmlElement>()
+        |> List.ofSeq
+        |> List.map recordConstructor
 
     let listUser =
-        setUserXmlNode
-        |> List.map userFromXmlElement
+        setRecordFromXPathAndRecordConstructor userXPath userFromXmlElement
         |> List.sortBy (fun user -> user.CreateDate)
 
-    listUser
+    let setCategory =
+        setRecordFromXPathAndRecordConstructor categoryXPath categoryFromXmlElement
+
+    (listUser, setCategory)
