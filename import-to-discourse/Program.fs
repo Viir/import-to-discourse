@@ -6,9 +6,9 @@ open System.IO
 let main argv =
     let inputFilePath = argv.[0]
     let outputFilePath = argv.[1]
-    
+   
     printfn "reading from file: %A" inputFilePath
-    
+
     printfn "press key to continue"
     System.Console.ReadKey() |> ignore
     
