@@ -18,6 +18,8 @@ type User =
         LastLoginDate : System.DateTime Option;
         LastActivityDate : System.DateTime Option;
         Slug : string;
+        Location : string;
+        Website : string;
     }
 
 type Category = 
@@ -93,6 +95,8 @@ let userFromXmlElement (xmlElement : XmlElement) =
         LastLoginDate = getColumnTimeOptionValue "LastLoginDate"
         LastActivityDate = getColumnTimeOptionValue "LastActivityDate"
         Slug = getColumnValue "Slug"
+        Location = getColumnValue "Location"
+        Website = getColumnValue "Website"
     }
 
 let categoryFromXmlElement (xmlElement : XmlElement) =
@@ -147,7 +151,72 @@ let postFromXmlElement (xmlElement : XmlElement) =
         IpAddress = getColumnValue "IpAddress"
     }
 
-let importFromFileAtPath filePath =
+let discourseUser (listPost : Post list) (user : User)
+    : Discourse.DbModel.User.User =
+    let isFromThisUser post = post.MembershipUser_Id = user.Id
+    let fistPostOption = listPost |> List.tryFind isFromThisUser
+    let lastPostOption = listPost |> List.tryFindBack isFromThisUser
+    let postOptionDateCreated postOption = match postOption with | None -> None | Some post -> Some post.DateCreated
+    {
+        id = -1;
+        name = user.UserName;
+        username = user.UserName;
+        createdAt = user.CreateDate;
+        updatedAt = System.DateTime.MinValue;
+        email = user.Email;
+        last_posted_at = postOptionDateCreated lastPostOption;
+        last_seen_at = user.LastActivityDate;
+        trust_level = 0;
+        registration_ip_address = null;
+        first_seen_at = postOptionDateCreated fistPostOption;
+        profile_location = user.Location;
+        profile_website = user.Website;
+    }
+
+let discourseCategory discourseCategoryId (category : Category)
+    : Discourse.DbModel.Category.Category =
+    {
+        id = -1;
+        name = category.Name;
+        created_at = category.DateCreated;
+        updated_at = System.DateTime.MinValue;
+        user_id = -1;
+        slug = category.Slug;
+        description = category.Description;
+        parent_category_id = discourseCategoryId category.Category_Id;
+    }
+
+
+let transformToDiscourse
+    (listUser : User list)
+    (listCategory : Category list)
+    listTopic
+    listPost
+    userIdBase
+    categoryIdBase
+    topicIdBase
+    postIdBase
+    =
+    let discourseUserOId userId =
+        (listUser |> List.findIndex (fun user -> user.Id = userId)) + userIdBase
+
+    let discourseCategoryIdOption categoryId =
+        listCategory |> List.tryFindIndex (fun category -> category.Id = categoryId)
+        |> Option.map (fun id -> id + categoryIdBase)
+
+    let setUser =
+        listUser
+        |> List.map (fun user -> {(discourseUser listPost user) with id = (discourseUserOId user.Id)})
+
+    let setCategory =
+        listCategory
+        |> List.map (fun category -> {(discourseCategory discourseCategoryIdOption category) with id = (discourseCategoryIdOption category.Id).Value})
+
+    (setUser, setCategory, listTopic, listPost)
+
+let importFromFileAtPath
+    filePath
+    =
     let fileStream = new System.IO.FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read)
 
     let xmlDocument = new XmlDocument();
@@ -163,8 +232,9 @@ let importFromFileAtPath filePath =
         setRecordFromXPathAndRecordConstructor userXPath userFromXmlElement
         |> List.sortBy (fun user -> user.CreateDate)
 
-    let setCategory =
+    let listCategory =
         setRecordFromXPathAndRecordConstructor categoryXPath categoryFromXmlElement
+        |> List.sortBy (fun category -> category.DateCreated)
 
     let listTopic =
         setRecordFromXPathAndRecordConstructor topicXPath topicFromXmlElement
@@ -174,4 +244,4 @@ let importFromFileAtPath filePath =
         setRecordFromXPathAndRecordConstructor postXPath postFromXmlElement
         |> List.sortBy (fun post -> post.DateCreated)
 
-    (listUser, setCategory, listTopic, listPost)
+    (listUser, listCategory, listTopic, listPost)
