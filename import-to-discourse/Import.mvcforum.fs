@@ -186,33 +186,94 @@ let discourseCategory discourseCategoryId (category : Category)
         parent_category_id = discourseCategoryId category.Category_Id;
     }
 
+let discourseTopic discourseUserId discourseCategoryId (listPost : Post list) (topic : Topic)
+    : Discourse.DbModel.Topic.Topic =
+    let listPostInTopic = listPost |> List.filter (fun post -> post.Topic_Id = topic.Id)
+    let lastPost = listPostInTopic |> List.last
+
+    let postCount = listPostInTopic |> List.length
+
+    {
+        id = -1;
+        userId = discourseUserId topic.MembershipUser_Id;
+        slug = topic.Slug;
+        title = topic.Name;
+        createdAt = topic.CreateDate;
+        lastPostedAt = lastPost.DateCreated;
+        updatedAt = DateTime.MinValue;
+        viewCount = topic.Views;
+        postCount = postCount;
+        lastPostUserId = discourseUserId lastPost.MembershipUser_Id;
+        replyCount = postCount - 1;
+        highestPostNumber = postCount;
+        categoryId = discourseCategoryId topic.Category_Id;
+        isClosed = 0 < topic.IsLocked;
+        archetype = Discourse.DbModel.Topic.Regular;
+    }
+
+let discoursePost discourseUserId discourseTopicId discoursePostNumber (post : Post)
+    : Discourse.DbModel.Post.Post =
+    {
+        id = -1;
+        user_id = Some (discourseUserId post.MembershipUser_Id);
+        topic_id = discourseTopicId post.Topic_Id;
+        post_number = discoursePostNumber post;
+        raw = "Transform from mvcforum content to markdown: Not implemented yet!!!!";
+        cooked = post.PostContent;
+        created_at = post.DateCreated;
+        updated_at = DateTime.MinValue;
+        reply_to_post_number = None;
+        deleted_at = None;
+        reads = 0;
+        last_editor_id = None;
+        last_version_at = post.DateEdited;
+    }
+
 
 let transformToDiscourse
     (listUser : User list)
     (listCategory : Category list)
-    listTopic
-    listPost
+    (listTopic : Topic list)
+    (listPost : Post list)
     userIdBase
     categoryIdBase
     topicIdBase
     postIdBase
     =
-    let discourseUserOId userId =
+    let discourseUserId userId =
         (listUser |> List.findIndex (fun user -> user.Id = userId)) + userIdBase
 
     let discourseCategoryIdOption categoryId =
         listCategory |> List.tryFindIndex (fun category -> category.Id = categoryId)
         |> Option.map (fun id -> id + categoryIdBase)
 
+    let discourseTopicId topicId =
+        (listTopic |> List.findIndex (fun topic -> topic.Id = topicId)) + topicIdBase
+
+    let discoursePostId postId =
+        (listPost |> List.findIndex (fun post -> post.Id = postId)) + postIdBase
+    
+    let discoursePostNumber post =
+        (listPost |> List.filter (fun otherPost -> otherPost.Topic_Id = post.Topic_Id && otherPost.DateCreated < post.DateCreated)
+        |> List.length) + 1
+
     let setUser =
         listUser
-        |> List.map (fun user -> {(discourseUser listPost user) with id = (discourseUserOId user.Id)})
+        |> List.map (fun user -> {(discourseUser listPost user) with id = (discourseUserId user.Id)})
 
-    let setCategory =
+    let setCategoryDiscourse =
         listCategory
         |> List.map (fun category -> {(discourseCategory discourseCategoryIdOption category) with id = (discourseCategoryIdOption category.Id).Value})
 
-    (setUser, setCategory, listTopic, listPost)
+    let setTopicDiscourse =
+        listTopic
+        |> List.map (fun topic -> {(discourseTopic discourseUserId discourseCategoryIdOption listPost topic) with id = (discourseTopicId topic.Id)})
+
+    let setPostDiscourse =
+        listPost
+        |> List.map (fun post -> {(discoursePost discourseUserId discourseTopicId discoursePostNumber post) with id = (discoursePostId post.Id)})
+
+    (setUser, setCategoryDiscourse, setTopicDiscourse, setPostDiscourse)
 
 let importFromFileAtPath
     filePath

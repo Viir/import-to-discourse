@@ -4,20 +4,42 @@ open System.IO
 
 [<EntryPoint>]
 let main argv =
-    let inputFilePath = argv.[0]
-    let outputFilePath = argv.[1]
+    let toBeImportedInputFilePath = argv.[0]
+    let discourseInputFilePath = argv.[1]
+    let discourseOutputFilePath = argv.[2]
    
-    printfn "reading from file: %A" inputFilePath
+    printfn "reading data to be imported from file: %A" toBeImportedInputFilePath
+    printfn "reading discourse dump from file: %A" discourseInputFilePath
+
+    let (listUser, listCategory, listTopic, listPost) =
+        Import.mvcforum.importFromFileAtPath toBeImportedInputFilePath
+
+    let (setUser, setCategory, setTopic, setPost)   =
+        Import.mvcforum.transformToDiscourse
+            listUser
+            listCategory
+            listTopic
+            listPost
+            1000
+            1000
+            1000
+            1000
 
     printfn "press key to continue"
     System.Console.ReadKey() |> ignore
-    
-    let sqlDumpListLine = File.ReadAllLines(inputFilePath)
 
-    let modifiedDump = AddRecord.addRecord sqlDumpListLine
+    let sqlDumpListLine = File.ReadAllLines(discourseInputFilePath)
 
-    printfn "writing to file: %A" outputFilePath
+    let modifiedDump =
+        AddRecord.postgresqlDumpWithRecordsAdded
+            sqlDumpListLine
+            setUser
+            setCategory
+            setTopic
+            setPost
+
+    printfn "writing to file: %A" discourseOutputFilePath
     
-    File.WriteAllLines(outputFilePath, modifiedDump, System.Text.Encoding.UTF8)
+    File.WriteAllLines(discourseOutputFilePath, modifiedDump, System.Text.Encoding.UTF8)
 
     0

@@ -27,72 +27,6 @@ let copySectionEndLine = "\\."
 
 let copySectionEndLinePattern = "^" + Regex.Escape(copySectionEndLine)
 
-let userToBeAdded =
-    {
-        id = 1000;
-        username = "username-added-by-import";
-        createdAt = DateTime.UtcNow;
-        updatedAt = DateTime.MinValue;
-        name = "name-added-by-import";
-        email = "user-added-by-import@viir.de";
-        last_posted_at = None;
-        last_seen_at = None;
-        trust_level = 0;
-        registration_ip_address = null;
-        first_seen_at = None;
-
-        profile_location = "profile location";
-        profile_website = "http://distilledgames.de";
-    }
-
-let categoryToBeAdded =
-    {
-        id = 1010;
-        name = "Category added by import tool";
-        description = "Description of category added by import tool";
-        user_id = -1;
-        parent_category_id = Some 3;
-        created_at = DateTime.UtcNow;
-        updated_at = DateTime.UtcNow;
-        slug = "slug-of-category-added-by-import-tool";
-    }
-
-let topicToBeAdded =
-    {
-        id = 1010;
-        userId = -1;
-        title = "topic which has been added by import tool";
-        createdAt = DateTime.UtcNow;
-        lastPostedAt = DateTime.UtcNow;
-        updatedAt = DateTime.MinValue;
-        viewCount = 4;
-        postCount = 0;
-        lastPostUserId = -1;
-        replyCount = 0;
-        highestPostNumber = 0;
-        categoryId = Some 1010;
-        isClosed = false;
-        archetype = Regular;
-        slug = "this-is-the-imported-topics-slug";
-    }
-
-let postToBeAdded =
-    {
-        id = 1010;
-        user_id = Some 1000;
-        topic_id = 1010;
-        post_number = 0;
-        raw = "raw text of post\nother line";
-        cooked = "this is the cooked version<br><pre><code class=\"clojure\">(def comment \"text in here should be transformed by highlight.js\")\n\n(def ^:dynamic chunk-size 17)</code></pre><br><p style=\"color:#b98686;\">colored <b>bold</b> text</p>";
-        created_at = DateTime.UtcNow;
-        updated_at = DateTime.MinValue;
-        reply_to_post_number = None;
-        deleted_at = None;
-        reads = 0;
-        last_editor_id = None;
-        last_version_at = DateTime.MinValue;
-    }
-
 type CopySection =
     {
         tableName: string;
@@ -162,7 +96,7 @@ let record listColumnName funColumnValueFromName recordId =
     (recordListColumnNameAndValue, recordLine)
 
 let escapedForColumnValue (columnValue:string) =
-    columnValue.Replace("\t", "\\t").Replace("\n", "\\n")
+    columnValue.Replace("\t", "\\t").Replace("\n", "\\n").Replace("\r", "\\r")
 
 let timeString (dateTime:DateTime) =
     //  example taken from discourse backup dump.sql: 2016-09-17 20:31:35.679472
@@ -224,33 +158,40 @@ let withCopySectionAppended sectionToBeAdded listLine =
     let sectionStartLine = "COPY " + tableName + " (" + String.Join(columnNameSeparator, listColumnUsedName) + ") FROM stdin;"
 
     let sectionToBeAddedListLine =
-        [ [ ""; sectionStartLine ]; sectionToBeAdded.listLine; [ copySectionEndLine ]]
-        |> List.concat
+        if 0 < (listColumnUsedName |> List.length)
+        then [ [ ""; sectionStartLine ]; sectionToBeAdded.listLine; [ copySectionEndLine ]] |> List.concat
+        else []
 
     [ beforeListLine; sectionToBeAddedListLine; afterListLine ]
     |> List.concat
 
-let listTransform =
-    [
-        (userTableName, (copySectionFromListRecord columnValueForUserWithDefaults [ userToBeAdded ]));
-        (userOptionsTableName, (copySectionFromListRecord columnValueForUserOptionsWithDefaults [ userToBeAdded ]));
-        (userProfilesTableName, (copySectionFromListRecord columnValueForUserProfile [ userToBeAdded ]));
-        (userStatsTableName, (copySectionFromListRecord columnValueForUserStatsWithDefaults [ userToBeAdded ]));
-
-        (categoryTableName, (copySectionFromListRecord columnValueForCategory [ categoryToBeAdded ]));
-
-        (topicTableName, (copySectionFromListRecord columnValueForTopicWithDefaults [ topicToBeAdded ]));
-
-        (postTableName, (copySectionFromListRecord columnValueForPost [ postToBeAdded ]));
-    ]
-
-let addRecord postgresqlDump =
+let postgresqlDumpWithRecordsAdded
+    postgresqlDump
+    setUserToBeAdded
+    setCategoryToBeAdded
+    setTopicToBeAdded
+    setPostToBeAdded
+    =
     let listLine = postgresqlDump |> Array.toList
 
+    let listTransform =
+        [
+            (userTableName, (copySectionFromListRecord columnValueForUserWithDefaults setUserToBeAdded));
+            (userOptionsTableName, (copySectionFromListRecord columnValueForUserOptionsWithDefaults setUserToBeAdded));
+            (userProfilesTableName, (copySectionFromListRecord columnValueForUserProfile setUserToBeAdded));
+            (userStatsTableName, (copySectionFromListRecord columnValueForUserStatsWithDefaults setUserToBeAdded));
+
+            (categoryTableName, (copySectionFromListRecord columnValueForCategory setCategoryToBeAdded));
+
+            (topicTableName, (copySectionFromListRecord columnValueForTopicWithDefaults setTopicToBeAdded));
+
+            (postTableName, (copySectionFromListRecord columnValueForPost setPostToBeAdded));
+        ]
+
     let listLineWithRecordsAppended =
-        List.fold (fun state (tableName, t) ->
+        List.fold (fun state (tableName, transform) ->
             let copySection = state |> copySectionFromTableName tableName
-            let copySectionAdd = copySection |> t
+            let copySectionAdd = copySection |> transform
             state |> withCopySectionAppended copySectionAdd)
             listLine
             listTransform
