@@ -163,7 +163,7 @@ let discourseUser (listPost : Post list) (user : User)
     let postOptionDateCreated postOption = match postOption with | None -> None | Some post -> Some post.DateCreated
     {
         id = -1;
-        name = user.UserName;
+        name = null;
         username = user.UserName;
         createdAt = user.CreateDate;
         updatedAt = System.DateTime.MinValue;
