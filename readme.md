@@ -11,5 +11,8 @@ It builds the sql code needed to add the content and adds it to the sql dump scr
 ### Repackaging the backup with modified sql dump
 With 7-Zip, files can easily be replaced in the nested structure of the backup file as it takes care of propagating the changes upwards.
 If a file has been replaced in the 7-Zip GUI, it asks if the containing archive(s) should be updated as well upon closing the GUI.
-This seems to work at least for the gz->tar->gz hierarchy as seen in discourse backups.
+This worked for the gz->tar->gz hierarchy found in discourse backups.
 
+## import from mvcforum
+Import from [mvcforum](http://www.mvcforum.com/) supports users, categories, topics and posts.
+The mvcforum database tables are exported into a single file using the sql script in the file `MvcForum.Export.To.Xml.sql`.
