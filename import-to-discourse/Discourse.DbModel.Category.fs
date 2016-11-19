@@ -62,6 +62,7 @@ type Category =
         slug: string;
         description: string;
         parent_category_id: int Option;
+        topic_id: int;
     }
 
 let columnValueForCategory category columnName =
@@ -75,4 +76,5 @@ let columnValueForCategory category columnName =
         | "description" -> String category.description
         | "parent_category_id" -> intOptionAsColumnValue category.parent_category_id
         | "name_lower" -> String (category.name.ToLowerInvariant())
+        | "topic_id" -> Integer category.topic_id
         | _ -> Default
