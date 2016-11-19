@@ -201,19 +201,19 @@ let discourseTopic discourseUserId discourseCategoryId (listPost : Post list) (t
 
     {
         id = -1;
-        userId = discourseUserId topic.MembershipUser_Id;
+        user_id = discourseUserId topic.MembershipUser_Id;
         slug = topic.Slug;
         title = topic.Name;
-        createdAt = topic.CreateDate;
-        lastPostedAt = lastPost.DateCreated;
-        updatedAt = DateTime.MinValue;
-        viewCount = topic.Views;
-        postCount = postCount;
-        lastPostUserId = discourseUserId lastPost.MembershipUser_Id;
-        replyCount = postCount - 1;
-        highestPostNumber = postCount;
-        categoryId = discourseCategoryId topic.Category_Id;
-        isClosed = 0 < topic.IsLocked;
+        created_at = topic.CreateDate;
+        last_posted_at = lastPost.DateCreated;
+        updated_at = DateTime.MinValue;
+        views = topic.Views;
+        posts_count = postCount;
+        last_post_user_id = discourseUserId lastPost.MembershipUser_Id;
+        reply_count = postCount - 1;
+        highest_post_number = postCount;
+        category_id = discourseCategoryId topic.Category_Id;
+        closed = 0 < topic.IsLocked;
         archetype = Discourse.DbModel.Topic.Regular;
     }
 

@@ -186,28 +186,30 @@ let columnValueForUserProfile user columnName =
 
 
 (*
-Copied from: https://github.com/discourse/discourse/blob/5dbd6a304bed5400be481d71061d3e3ebb4d6785/app/models/user_stat.rb#L102-L121
+Schema from backup from v1.7.0.beta7 +27
 
-# == Schema Information
-#
-# Table name: user_stats
-#
-#  user_id                  :integer          not null, primary key
-#  topics_entered           :integer          default(0), not null
-#  time_read                :integer          default(0), not null
-#  days_visited             :integer          default(0), not null
-#  posts_read_count         :integer          default(0), not null
-#  likes_given              :integer          default(0), not null
-#  likes_received           :integer          default(0), not null
-#  topic_reply_count        :integer          default(0), not null
-#  new_since                :datetime         not null
-#  read_faq                 :datetime
-#  first_post_created_at    :datetime
-#  post_count               :integer          default(0), not null
-#  topic_count              :integer          default(0), not null
-#  bounce_score             :integer          default(0), not null
-#  reset_bounce_score_after :datetime
-#
+--
+-- TOC entry 505 (class 1259 OID 41942)
+-- Name: user_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE user_stats (
+    user_id integer NOT NULL,
+    topics_entered integer DEFAULT 0 NOT NULL,
+    time_read integer DEFAULT 0 NOT NULL,
+    days_visited integer DEFAULT 0 NOT NULL,
+    posts_read_count integer DEFAULT 0 NOT NULL,
+    likes_given integer DEFAULT 0 NOT NULL,
+    likes_received integer DEFAULT 0 NOT NULL,
+    topic_reply_count integer DEFAULT 0 NOT NULL,
+    new_since timestamp without time zone NOT NULL,
+    read_faq timestamp without time zone,
+    first_post_created_at timestamp without time zone,
+    post_count integer DEFAULT 0 NOT NULL,
+    topic_count integer DEFAULT 0 NOT NULL,
+    bounce_score integer DEFAULT 0 NOT NULL,
+    reset_bounce_score_after timestamp without time zone
+);
 *)
 
 let userStatsSetColumnValueStatic =

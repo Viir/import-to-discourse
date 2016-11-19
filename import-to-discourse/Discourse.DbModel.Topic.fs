@@ -77,18 +77,18 @@ type TopicArchetype =
 type Topic =
     {
         id: int;
-        userId: int;
+        user_id: int;
         title: string;
-        createdAt: System.DateTime;
-        lastPostedAt: System.DateTime;
-        updatedAt: System.DateTime;
-        viewCount: int;
-        postCount: int;
-        lastPostUserId: int;
-        replyCount: int;
-        highestPostNumber: int;
-        categoryId: int Option;
-        isClosed: bool;
+        created_at: System.DateTime;
+        last_posted_at: System.DateTime;
+        updated_at: System.DateTime;
+        views: int;
+        posts_count: int;
+        last_post_user_id: int;
+        reply_count: int;
+        highest_post_number: int;
+        category_id: int Option;
+        closed: bool;
         archetype: TopicArchetype;
         slug: string;
     }
@@ -143,19 +143,19 @@ let stringFromTopicArchetype archetype =
 let columnValueForTopic topic columnName =
     match columnName with
         | "id" -> Integer topic.id
-        | "user_id" -> Integer topic.userId
+        | "user_id" -> Integer topic.user_id
         | "title" -> String topic.title
-        | "created_at" -> Time topic.createdAt
-        | "last_posted_at" -> Time topic.lastPostedAt
-        | "updated_at" -> Time topic.updatedAt
-        | "views" -> Integer topic.viewCount
-        | "posts_count" -> Integer topic.postCount
-        | "last_post_user_id" -> Integer topic.lastPostUserId
-        | "reply_count" -> Integer topic.replyCount
-        | "highest_post_number" -> Integer topic.highestPostNumber
-        | "category_id" -> intOptionAsColumnValue topic.categoryId
-        | "closed" -> Boolean topic.isClosed
-        | "bumped_at" -> Time topic.lastPostedAt
+        | "created_at" -> Time topic.created_at
+        | "last_posted_at" -> Time topic.last_posted_at
+        | "updated_at" -> Time topic.updated_at
+        | "views" -> Integer topic.views
+        | "posts_count" -> Integer topic.posts_count
+        | "last_post_user_id" -> Integer topic.last_post_user_id
+        | "reply_count" -> Integer topic.reply_count
+        | "highest_post_number" -> Integer topic.highest_post_number
+        | "category_id" -> intOptionAsColumnValue topic.category_id
+        | "closed" -> Boolean topic.closed
+        | "bumped_at" -> Time topic.last_posted_at
         | "archetype" -> stringFromTopicArchetype topic.archetype
         | "slug" -> String topic.slug
         | _ -> Default
