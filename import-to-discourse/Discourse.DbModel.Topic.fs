@@ -106,7 +106,6 @@ let setColumnValueStatic =
         ("incoming_link_count", Default);
         ("bookmark_count", Default);
         ("archived", Boolean false);
-        ("bumped_at", Time System.DateTime.MinValue);
         ("has_summary", Boolean false);
         ("vote_count", Default);
         ("archetype", Default);
@@ -156,6 +155,7 @@ let columnValueForTopic topic columnName =
         | "highest_post_number" -> Integer topic.highestPostNumber
         | "category_id" -> intOptionAsColumnValue topic.categoryId
         | "closed" -> Boolean topic.isClosed
+        | "bumped_at" -> Time topic.lastPostedAt
         | "archetype" -> stringFromTopicArchetype topic.archetype
         | "slug" -> String topic.slug
         | _ -> Default
