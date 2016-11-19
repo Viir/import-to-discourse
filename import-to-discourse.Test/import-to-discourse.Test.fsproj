@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>3230db21-9969-4406-832b-cfe307904215</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>import_to_discourse</RootNamespace>
-    <AssemblyName>import_to_discourse</AssemblyName>
+    <ProjectGuid>39d21f60-0fbc-447f-8fe6-fbbe35dd0e1a</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>import_to_discourse.Test</RootNamespace>
+    <AssemblyName>import_to_discourse.Test</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>import-to-discourse</Name>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Name>import-to-discourse.Test</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,9 +22,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\import_to_discourse.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Debug\import_to_discourse.Test.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,9 +31,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\import_to_discourse.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Release\import_to_discourse.Test.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -55,17 +51,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Discourse.DbModel.Common.fs" />
-    <Compile Include="Discourse.DbModel.User.fs" />
-    <Compile Include="Discourse.DbModel.Category.fs" />
-    <Compile Include="Discourse.DbModel.Topic.fs" />
-    <Compile Include="Discourse.DbModel.Post.fs" />
     <Compile Include="PostContent.fs" />
-    <Compile Include="Import.mvcforum.fs" />
-    <Compile Include="AddRecord.fs" />
-    <Compile Include="Program.fs" />
-    <None Include="App.config" />
-    <None Include="MvcForum.Export.To.Xml.sql" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -77,6 +63,10 @@
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.3.5.0\lib\net45\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ReverseMarkdown">
       <HintPath>..\packages\ReverseMarkdown.0.1.25\lib\net45\ReverseMarkdown.dll</HintPath>
       <Private>True</Private>
@@ -84,7 +74,13 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\import-to-discourse\import-to-discourse.fsproj">
+      <Name>import-to-discourse</Name>
+      <Project>{3230db21-9969-4406-832b-cfe307904215}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

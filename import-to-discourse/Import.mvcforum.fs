@@ -224,7 +224,7 @@ let discoursePost discourseUserId discourseTopicId discoursePostNumber (post : P
         user_id = Some (discourseUserId post.MembershipUser_Id);
         topic_id = discourseTopicId post.Topic_Id;
         post_number = discoursePostNumber post;
-        raw = "Transform from mvcforum content to markdown: Not implemented yet!!!!\n" + post.PostContent;
+        raw = (PostContent.postContentRawFromHtml post.PostContent) + "";
         cooked = post.PostContent + "";
         created_at = post.DateCreated;
         updated_at = DateTime.MinValue;
