@@ -90,6 +90,7 @@ type Post =
         reads : int;
         last_editor_id : int Option;
         last_version_at : System.DateTime;
+        sort_order : int Option;
     }
 
 let columnValueForPost post columnName =
@@ -107,4 +108,5 @@ let columnValueForPost post columnName =
         | "reads" -> Integer post.reads
         | "last_editor_id" -> intOptionAsColumnValue post.last_editor_id
         | "last_version_at" -> Time post.last_version_at
+        | "sort_order" -> intOptionAsColumnValue post.sort_order
         | _ -> Default

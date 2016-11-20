@@ -219,11 +219,12 @@ let discourseTopic discourseUserId discourseCategoryId (listPost : Post list) (t
 
 let discoursePost discourseUserId discourseTopicId discoursePostNumber (post : Post)
     : Discourse.DbModel.Post.Post =
+    let post_number = discoursePostNumber post
     {
         id = -1;
         user_id = Some (discourseUserId post.MembershipUser_Id);
         topic_id = discourseTopicId post.Topic_Id;
-        post_number = discoursePostNumber post;
+        post_number = post_number;
         raw = (PostContent.postContentRawFromHtml post.PostContent) + "";
         cooked = post.PostContent + "";
         created_at = post.DateCreated;
@@ -233,6 +234,7 @@ let discoursePost discourseUserId discourseTopicId discoursePostNumber (post : P
         reads = 0;
         last_editor_id = None;
         last_version_at = post.DateEdited;
+        sort_order = Some post_number;
     }
 
 let categoryDefinitionTopicAndPostFromCategory
