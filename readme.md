@@ -4,14 +4,9 @@ This is used for importing content to a [discourse](http://www.discourse.org) in
 It builds the sql code needed to add the content and adds it to the sql dump script obtained from a discourse backup.
 
 ### Overall process of importing
-+ Create a backup in discourse.
-+ Use this program to add the content to the sql dump in the file `dump.sql` contained in the backup.
-+ Restore from the modified backup.
-
-### Repackaging the backup with modified sql dump
-With 7-Zip, files can easily be replaced in the nested structure of the backup file as it takes care of propagating the changes upwards.
-If a file has been replaced in the 7-Zip GUI, it asks if the containing archive(s) should be updated as well upon closing the GUI.
-This worked for the gz->tar->gz hierarchy found in discourse backups.
++ Use the Backup feature in discourse to create an sql dump of the discourse database.
++ Use this program to add the data to be imported to the sql dump file.
++ Use the Restore feature in discourse with the modified sql dump.
 
 ## import from mvcforum
 Import from [mvcforum](http://www.mvcforum.com/) supports users, categories, topics and posts.
