@@ -16,6 +16,8 @@ type RecordType =
     | Category
     | Topic
     | Post
+    | Tag
+    | TopicTag
 
 let columnValueWithDefaults (defaults : (string * columnValue) list) callbackNoDefault columnName =
     let valueFromDefault =

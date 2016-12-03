@@ -8,6 +8,8 @@ let userXPath = "//SetMembershipUser/MembershipUser"
 let categoryXPath = "//SetCategory/Category"
 let topicXPath = "//SetTopic/Topic"
 let postXPath = "//SetPost/Post"
+let tagXPath = "//SetTopicTag/TopicTag"
+let topicTagXPath = "//SetTopic_Tag/Topic_Tag"
 
 type User = 
     {
@@ -60,6 +62,19 @@ type Post =
         IsSolution : int;
         IsTopicStarter : int;
         IpAddress : string;
+    }
+
+type Tag =
+    {
+        Id : string;
+        Tag : string;
+        Slug : string;
+    }
+
+type TopicTag =
+    {
+        Topic_Id : string;
+        TopicTag_Id : string;
     }
 
 let dictWithIndexAsKey listRecord =
@@ -151,6 +166,20 @@ let postFromXmlElement (xmlElement : XmlElement) =
         IpAddress = getColumnValue "IpAddress"
     }
 
+let tagFromXmlElement (xmlElement : XmlElement) =
+    let getColumnValue = getValueFromSingleChildElementWithName xmlElement
+    {
+        Id = getColumnValue "Id"
+        Tag = getColumnValue "Tag"
+        Slug = getColumnValue "Slug"
+    }
+
+let topicTagFromXmlElement (xmlElement : XmlElement) =
+    let getColumnValue = getValueFromSingleChildElementWithName xmlElement
+    {
+        Topic_Id = getColumnValue "Topic_Id"
+        TopicTag_Id = getColumnValue "TopicTag_Id"
+    }
 
 let categoryDefinitionTopicId categoryId =
     categoryId + "-category-definition-topic"
@@ -237,6 +266,27 @@ let discoursePost discourseUserId discourseTopicId discoursePostNumber (post : P
         sort_order = Some post_number;
     }
 
+let discourseTag (tag : Tag)
+    : Discourse.DbModel.Tag.Tag =
+    {
+        id = -1
+        name = tag.Tag
+        created_at = None
+        updated_at = None
+    }
+
+let discourseTopicTag discourseTopicId discourseTagId (topicFromId : string -> Topic) (topicTag : TopicTag)
+    : Discourse.DbModel.TopicTag.TopicTag =
+    let discourseTopicId = discourseTopicId topicTag.Topic_Id
+    let topic = topicFromId topicTag.Topic_Id
+    {
+        id = -1
+        topic_id = discourseTopicId
+        tag_id = discourseTagId topicTag.TopicTag_Id
+        created_at = Some topic.CreateDate
+        updated_at = None
+    }
+
 let categoryDefinitionTopicAndPostFromCategory
     discourseCategoryId
     (category : Category)
@@ -274,6 +324,8 @@ let transformToDiscourse
     ((listCategory : Category list), categoryIdBase)
     ((listTopicLessCategoryDefinition : Topic list), topicIdBase)
     ((listPostLessCategoryDefinition : Post list), postIdBase)
+    ((listTag : Tag list), tagIdBase)
+    ((listTopicTag : TopicTag list), topicTagIdBase)
     =
     let discourseUserId userId =
         if userId = null
@@ -294,6 +346,10 @@ let transformToDiscourse
     let listTopic =
         [listCategoryDefinitionTopicId; listTopicLessCategoryDefinition] |> List.concat
 
+    let topicFromId topicId =
+        listTopic
+        |> List.pick (fun c -> if c.Id = topicId then Some c else None)
+
     let listPost =
         [(listCategoryDefinitionTopicAndPost |> List.map snd); listPostLessCategoryDefinition] |> List.concat
 
@@ -303,7 +359,10 @@ let transformToDiscourse
     let discoursePostId postId =
         (listPost |> List.findIndex (fun post -> post.Id = postId)) + postIdBase
 
-    let discoursePostNumber post =
+    let discourseTagId tagId =
+        (listTag |> List.findIndex (fun tag -> tag.Id = tagId)) + tagIdBase
+
+    let discoursePostNumber (post : Post) =
         (listPost |> List.filter (fun otherPost -> otherPost.Topic_Id = post.Topic_Id && otherPost.DateCreated < post.DateCreated)
         |> List.length) + 1
 
@@ -324,7 +383,16 @@ let transformToDiscourse
         listPost
         |> List.map (fun post -> {(discoursePost discourseUserId discourseTopicId discoursePostNumber post) with id = (discoursePostId post.Id)})
 
-    (setUserDiscourse, setCategoryDiscourse, setTopicDiscourse, setPostDiscourse)
+    let setTagDiscourse =
+        listTag
+        |> List.map (fun tag -> {(discourseTag tag) with id = (discourseTagId tag.Id)})
+
+    let setTopicTagDiscourse =
+        listTopicTag
+        |> List.mapi (fun index topicTag ->
+            {(discourseTopicTag discourseTopicId discourseTagId topicFromId topicTag) with id = (index + topicTagIdBase)})
+
+    (setUserDiscourse, setCategoryDiscourse, setTopicDiscourse, setPostDiscourse, setTagDiscourse, setTopicTagDiscourse)
 
 let importFromFileAtPath
     filePath
@@ -356,4 +424,10 @@ let importFromFileAtPath
         setRecordFromXPathAndRecordConstructor postXPath postFromXmlElement
         |> List.sortBy (fun post -> post.DateCreated)
 
-    (listUser, listCategory, listTopic, listPost)
+    let listTag =
+        setRecordFromXPathAndRecordConstructor tagXPath tagFromXmlElement
+
+    let listTopicTag =
+        setRecordFromXPathAndRecordConstructor topicTagXPath topicTagFromXmlElement
+
+    (listUser, listCategory, listTopic, listPost, listTag, listTopicTag)

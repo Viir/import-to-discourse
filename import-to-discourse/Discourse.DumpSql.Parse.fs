@@ -74,8 +74,9 @@ let idFromRecord record =
     record
     |> List.pick (fun (columnName, value) -> if columnName = idColumnName then Some value else None)
 
-let idMax copySection =
-    copySection.listRecord
-    |> List.map idFromRecord
-    |> List.map System.Int32.Parse
-    |> List.max
+let idMaxOrZero copySection =
+    let setId =
+        copySection.listRecord
+        |> List.map idFromRecord
+        |> List.map System.Int32.Parse
+    if 0 < (setId |> List.length) then setId |> List.max else 0

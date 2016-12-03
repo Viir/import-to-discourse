@@ -8,6 +8,8 @@ open Discourse.DbModel.User
 open Discourse.DbModel.Category
 open Discourse.DbModel.Topic
 open Discourse.DbModel.Post
+open Discourse.DbModel.Tag
+open Discourse.DbModel.TopicTag
 open Discourse.DumpSql.Parse
 
 
@@ -98,6 +100,8 @@ let postgresqlDumpWithRecordsAdded
     setCategoryToBeAdded
     setTopicToBeAdded
     setPostToBeAdded
+    setTagToBeAdded
+    setTopicTagToBeAdded
     =
     let listTransform =
         [
@@ -111,6 +115,10 @@ let postgresqlDumpWithRecordsAdded
             (Topic, (copySectionFromListRecord columnValueForTopicWithDefaults setTopicToBeAdded));
 
             (Post, (copySectionFromListRecord columnValueForPost setPostToBeAdded));
+
+            (Tag, (copySectionFromListRecord columnValueForTag setTagToBeAdded));
+
+            (TopicTag, (copySectionFromListRecord columnValueForTopicTag setTopicTagToBeAdded));
         ]
 
     let listLineWithRecordsAppended =

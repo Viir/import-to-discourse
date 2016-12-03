@@ -18,6 +18,8 @@ let tableNameFromRecordType recordType =
     | Category -> "categories"
     | Topic -> "topics"
     | Post -> "posts"
+    | Tag -> "tags"
+    | TopicTag -> "topic_tags"
 
 
 let idOffsetFromRecordType recordType =
