@@ -8,12 +8,12 @@ let promptConsolePressKey () =
     System.Console.ReadKey()
 
 let onArgumentsChecked
-    toBeImportedInputFilePath
     discourseInputFilePath
+    toBeImportedInputFilePath
     discourseOutputFilePath
     =
-    printfn "Reading data to be imported from file: %A" toBeImportedInputFilePath
     printfn "Reading discourse database dump from file: %A" discourseInputFilePath
+    printfn "Reading data to be imported from file: %A" toBeImportedInputFilePath
 
     let sqlDumpListLine = File.ReadAllLines(discourseInputFilePath) |> Array.toList
 
@@ -31,8 +31,6 @@ let onArgumentsChecked
             (listTopic, (idBaseFromRecordType Topic))
             (listPost, (idBaseFromRecordType Post))
 
-    promptConsolePressKey() |> ignore
-
     let modifiedDump =
         AddRecord.postgresqlDumpWithRecordsAdded
             sqlDumpListLine
@@ -41,24 +39,42 @@ let onArgumentsChecked
             setTopic
             setPost
 
-    printfn "Writing to file: %A" discourseOutputFilePath
     File.WriteAllLines(discourseOutputFilePath, modifiedDump, System.Text.Encoding.UTF8)
+
+    printfn "Sql script written to file %s" discourseOutputFilePath
     0
+
+let listParameterDescription =
+    [
+        "Path to the file containing the sql dump from discourse."
+        "Path to the file containing the data exported from mvcforum using the sql script from the file 'MvcForum.Export.To.Xml.sql'."
+    ]
 
 [<EntryPoint>]
 let main argv =
     printfn "Warning: diagnostics not implemented. For example, importing a user with an email address that was already present in the database was observed to result in a reset of discourse."
     promptConsolePressKey() |> ignore
 
-    if argv.Length < 3
+    let expectedArgumentCount = listParameterDescription |> List.length
+    let missingArgumentCount = expectedArgumentCount - argv.Length
+
+    if 0 < missingArgumentCount
     then
-        printfn "Missing arguments."
+        printfn "Missing %i arguments. The following %i arguments are expected:\n%s"
+            missingArgumentCount
+            expectedArgumentCount
+            (System.String.Join(
+                System.Environment.NewLine,
+                (listParameterDescription |> List.map (fun pd -> "+ " + pd) |> List.toArray)))
+
         promptConsolePressKey() |> ignore
         2
     else
-        let toBeImportedInputFilePath = argv.[0]
-        let discourseInputFilePath = argv.[1]
-        let discourseOutputFilePath = argv.[2]
+        let timeString = System.DateTime.UtcNow.ToString("yyyy-MM-ddTHHmmss")
 
-        onArgumentsChecked toBeImportedInputFilePath discourseInputFilePath discourseOutputFilePath
+        let discourseInputFilePath = argv.[0]
+        let toBeImportedInputFilePath = argv.[1]
+        let discourseOutputFilePath = discourseInputFilePath + ".with.imported." + timeString + ".sql"
+
+        onArgumentsChecked discourseInputFilePath toBeImportedInputFilePath discourseOutputFilePath
 
