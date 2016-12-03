@@ -15,7 +15,13 @@ let onArgumentsChecked
     printfn "Reading discourse database dump from file: %A" discourseInputFilePath
     printfn "Reading data to be imported from file: %A" toBeImportedInputFilePath
 
+    let newStopwatch() = System.Diagnostics.Stopwatch.StartNew()
+
+    let stopwatchWithFile = newStopwatch()
+
     let sqlDumpListLine = File.ReadAllLines(discourseInputFilePath) |> Array.toList
+
+    let stopwatchMerge = newStopwatch()
 
     let idBaseFromRecordType recordType =
         ((Discourse.DumpSql.Parse.copySectionFromRecordType recordType sqlDumpListLine)
@@ -39,9 +45,20 @@ let onArgumentsChecked
             setTopic
             setPost
 
+    stopwatchMerge.Stop()
+
+    printfn "Imported %i user accounts, %i categories, %i topics and %i posts in %i ms."
+        setUser.Length
+        setCategory.Length
+        setTopic.Length
+        setPost.Length
+        stopwatchMerge.ElapsedMilliseconds
+
+    printfn "Starting to write sql script to file %s" discourseOutputFilePath
+
     File.WriteAllLines(discourseOutputFilePath, modifiedDump, System.Text.Encoding.UTF8)
 
-    printfn "Sql script written to file %s" discourseOutputFilePath
+    printfn "Completed in %i ms." stopwatchWithFile.ElapsedMilliseconds
     0
 
 let listParameterDescription =
@@ -52,7 +69,8 @@ let listParameterDescription =
 
 [<EntryPoint>]
 let main argv =
-    printfn "Warning: diagnostics not implemented. For example, importing a user with an email address that was already present in the database was observed to result in a reset of discourse."
+    printfn "Tool from https://github.com/Viir/import-to-discourse to import from mvcforum to discourse."
+    printfn "Warning: diagnostics are not implemented. For example, importing a user with an email address that was already present in the database was observed to result in a reset of discourse."
     promptConsolePressKey() |> ignore
 
     let expectedArgumentCount = listParameterDescription |> List.length
