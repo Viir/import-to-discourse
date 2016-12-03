@@ -11,3 +11,10 @@ It builds the sql code needed to add the content and adds it to the sql dump scr
 ## import from mvcforum
 Import from [mvcforum](http://www.mvcforum.com/) supports users, categories, topics and posts.
 The mvcforum database tables are exported into a single file using the sql script in the file `MvcForum.Export.To.Xml.sql`.
+
+When running the import tool, supply the following arguments:
++ Path to the file containing the sql dump from discourse.
++ Path to the xml file containing the mvcforum export.
+
+The tool then writes an sql script with the data merged from both databases into a new file.
+After gzipping, you can apply it to your discourse instance using the restore function.
