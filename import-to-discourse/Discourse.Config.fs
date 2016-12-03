@@ -4,6 +4,7 @@ open Discourse.DbModel.Common
 
 let recordValueSeparator = "\t"
 let columnNameSeparator = ","
+let columnValueNull = "\\N"
 
 let idColumnName = "id"
 

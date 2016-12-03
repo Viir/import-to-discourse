@@ -31,12 +31,12 @@ let timeString (dateTime:DateTime) =
 
 let columnValueStringFromUnion columnValueUnion =
     match columnValueUnion with
-        | Null -> "\\N"
+        | Null -> columnValueNull
         | Boolean b -> if b then "t" else "f"
         | Integer i -> i.ToString()
         | String s ->
             match s with
-            | null -> "\\N"
+            | null -> columnValueNull
             | _ -> escapedForColumnValue s
         | Time t -> timeString t
         | Default -> "DEFAULT"
