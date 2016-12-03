@@ -8,6 +8,14 @@ type columnValue =
     | Time of System.DateTime
     | Default
 
+type RecordType =
+    | User
+    | UserProfile
+    | UserOptions
+    | UserStats
+    | Category
+    | Topic
+    | Post
 
 let columnValueWithDefaults (defaults : (string * columnValue) list) callbackNoDefault columnName =
     let valueFromDefault =

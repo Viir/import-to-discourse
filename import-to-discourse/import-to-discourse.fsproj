@@ -61,8 +61,10 @@
     <Compile Include="Discourse.DbModel.Topic.fs" />
     <Compile Include="Discourse.DbModel.Post.fs" />
     <Compile Include="PostContent.fs" />
-    <Compile Include="Import.mvcforum.fs" />
+    <Compile Include="Discourse.Config.fs" />
+    <Compile Include="Discourse.DumpSql.Parse.fs" />
     <Compile Include="AddRecord.fs" />
+    <Compile Include="Import.mvcforum.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="MvcForum.Export.To.Xml.sql" />

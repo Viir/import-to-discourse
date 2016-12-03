@@ -270,14 +270,10 @@ let categoryDefinitionTopicAndPostFromCategory
     })
 
 let transformToDiscourse
-    (listUser : User list)
-    (listCategory : Category list)
-    (listTopicLessCategoryDefinition : Topic list)
-    (listPostLessCategoryDefinition : Post list)
-    userIdBase
-    categoryIdBase
-    topicIdBase
-    postIdBase
+    ((listUser : User list), userIdBase)
+    ((listCategory : Category list), categoryIdBase)
+    ((listTopicLessCategoryDefinition : Topic list), topicIdBase)
+    ((listPostLessCategoryDefinition : Post list), postIdBase)
     =
     let discourseUserId userId =
         if userId = null

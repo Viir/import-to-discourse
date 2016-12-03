@@ -1,5 +1,6 @@
 ﻿module Main
 
+open Discourse.DbModel.Common
 open System.IO
 
 let promptConsolePressKey () =
@@ -14,23 +15,23 @@ let onArgumentsChecked
     printfn "Reading data to be imported from file: %A" toBeImportedInputFilePath
     printfn "Reading discourse database dump from file: %A" discourseInputFilePath
 
+    let sqlDumpListLine = File.ReadAllLines(discourseInputFilePath) |> Array.toList
+
+    let idBaseFromRecordType recordType =
+        ((Discourse.DumpSql.Parse.copySectionFromRecordType recordType sqlDumpListLine)
+        |> Discourse.DumpSql.Parse.idMax) + 1 + (Discourse.Config.idOffsetFromRecordType recordType)
+
     let (listUser, listCategory, listTopic, listPost) =
         Import.mvcforum.importFromFileAtPath toBeImportedInputFilePath
 
     let (setUser, setCategory, setTopic, setPost)   =
         Import.mvcforum.transformToDiscourse
-            listUser
-            listCategory
-            listTopic
-            listPost
-            1000
-            1000
-            1000
-            1000
+            (listUser, (idBaseFromRecordType User))
+            (listCategory, (idBaseFromRecordType Category))
+            (listTopic, (idBaseFromRecordType Topic))
+            (listPost, (idBaseFromRecordType Post))
 
     promptConsolePressKey() |> ignore
-
-    let sqlDumpListLine = File.ReadAllLines(discourseInputFilePath)
 
     let modifiedDump =
         AddRecord.postgresqlDumpWithRecordsAdded

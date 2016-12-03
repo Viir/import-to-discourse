@@ -1,88 +1,15 @@
 ﻿module AddRecord
 
 open System
-open System.Linq
-open System.Text.RegularExpressions
 
+open Discourse.Config
 open Discourse.DbModel.Common
 open Discourse.DbModel.User
 open Discourse.DbModel.Category
 open Discourse.DbModel.Topic
 open Discourse.DbModel.Post
+open Discourse.DumpSql.Parse
 
-let recordValueSeparator = "\t"
-let columnNameSeparator = ","
-
-let idColumnName = "id"
-
-let userTableName = "users"
-let userOptionsTableName = "user_options"
-let userProfilesTableName = "user_profiles"
-let userStatsTableName = "user_stats"
-let categoryTableName = "categories"
-let topicTableName = "topics"
-let postTableName = "posts"
-
-let copySectionEndLine = "\\."
-
-let copySectionEndLinePattern = "^" + Regex.Escape(copySectionEndLine)
-
-type CopySection =
-    {
-        tableName: string;
-        startLineIndex : int;
-        listLine : List<string>;
-        listColumnName : List<string>;
-        listRecord : List<List<string * string>>
-    }
-
-let listColumnValueFromRecordLine (recordLine : string) =
-    recordLine.Split([recordValueSeparator] |> List.toArray, System.StringSplitOptions.None)
-    |> Array.toList
-
-let indexOfFirstElementMatchingRegexPattern regexPattern list =
-    list |> List.findIndex (fun elem -> Regex.IsMatch(elem, regexPattern, RegexOptions.IgnoreCase))
-
-let indexOfLastElementMatchingRegexPattern regexPattern list =
-    list |> List.findIndexBack (fun elem -> Regex.IsMatch(elem, regexPattern, RegexOptions.IgnoreCase))
-
-let copySectionStartLinePattern tableName =
-    "^COPY\s+" + tableName + "\s*\(([^\)]*)\)"
-
-let copySectionFromTableName tableName listLine =
-    let startLinePattern = copySectionStartLinePattern tableName
-    let startLineIndex = listLine |> indexOfFirstElementMatchingRegexPattern startLinePattern
-    let copySectionListLine =
-        listLine
-        |> List.skip startLineIndex
-        |> List.takeWhile (fun line -> not (Regex.IsMatch(line, copySectionEndLinePattern)))
-
-    let listColumnNameText = Regex.Match(copySectionListLine.Head, startLinePattern).Groups.[1].Value
-    let listColumnName =
-        listColumnNameText.Split(List.toArray [columnNameSeparator], System.StringSplitOptions.RemoveEmptyEntries)
-        |> Array.toList
-        |> List.map (fun columnName -> columnName.Trim())
-
-    let (_, listRecordLine) = copySectionListLine |> List.splitAt 1
-
-    let listRecordListColumnValue =
-        listRecordLine
-        |> List.map listColumnValueFromRecordLine
-
-    let listRecord =
-        listRecordListColumnValue
-        |> List.map (fun recordListColumnValue ->
-            recordListColumnValue
-            |> List.mapi (fun index columnValue ->
-                (listColumnName.ElementAt(index), columnValue)))
-
-    {
-        tableName = tableName;
-        startLineIndex = startLineIndex;
-        listLine = copySectionListLine;
-        listColumnName = listColumnName;
-        listRecord = listRecord
-    }
 
 let record listColumnName funColumnValueFromName recordId =
     let recordListColumnNameAndValue =
@@ -166,35 +93,33 @@ let withCopySectionAppended sectionToBeAdded listLine =
     |> List.concat
 
 let postgresqlDumpWithRecordsAdded
-    postgresqlDump
+    postgresqlDumpListLine
     setUserToBeAdded
     setCategoryToBeAdded
     setTopicToBeAdded
     setPostToBeAdded
     =
-    let listLine = postgresqlDump |> Array.toList
-
     let listTransform =
         [
-            (userTableName, (copySectionFromListRecord columnValueForUserWithDefaults setUserToBeAdded));
-            (userOptionsTableName, (copySectionFromListRecord columnValueForUserOptionsWithDefaults setUserToBeAdded));
-            (userProfilesTableName, (copySectionFromListRecord columnValueForUserProfile setUserToBeAdded));
-            (userStatsTableName, (copySectionFromListRecord columnValueForUserStatsWithDefaults setUserToBeAdded));
+            (User, (copySectionFromListRecord columnValueForUserWithDefaults setUserToBeAdded));
+            (UserOptions, (copySectionFromListRecord columnValueForUserOptionsWithDefaults setUserToBeAdded));
+            (UserProfile, (copySectionFromListRecord columnValueForUserProfile setUserToBeAdded));
+            (UserStats, (copySectionFromListRecord columnValueForUserStatsWithDefaults setUserToBeAdded));
 
-            (categoryTableName, (copySectionFromListRecord columnValueForCategory setCategoryToBeAdded));
+            (Category, (copySectionFromListRecord columnValueForCategory setCategoryToBeAdded));
 
-            (topicTableName, (copySectionFromListRecord columnValueForTopicWithDefaults setTopicToBeAdded));
+            (Topic, (copySectionFromListRecord columnValueForTopicWithDefaults setTopicToBeAdded));
 
-            (postTableName, (copySectionFromListRecord columnValueForPost setPostToBeAdded));
+            (Post, (copySectionFromListRecord columnValueForPost setPostToBeAdded));
         ]
 
     let listLineWithRecordsAppended =
-        List.fold (fun state (tableName, transform) ->
-            let copySection = state |> copySectionFromTableName tableName
+        listTransform
+        |> List.fold (fun state (recordType, transform) ->
+            let copySection = state |> copySectionFromRecordType recordType
             let copySectionAdd = copySection |> transform
             state |> withCopySectionAppended copySectionAdd)
-            listLine
-            listTransform
+            postgresqlDumpListLine
 
     listLineWithRecordsAppended |> List.toArray
 
