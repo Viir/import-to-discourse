@@ -11,6 +11,7 @@ open Discourse.DbModel.Post
 open Discourse.DbModel.Tag
 open Discourse.DbModel.TopicTag
 open Discourse.DbModel.Permalink
+open Discourse.DbModel.PostAction
 open Discourse.DumpSql.Parse
 
 
@@ -97,32 +98,35 @@ let withCopySectionAppended sectionToBeAdded listLine =
 
 let postgresqlDumpWithRecordsAdded
     postgresqlDumpListLine
-    setUserToBeAdded
-    setCategoryToBeAdded
-    setTopicToBeAdded
-    setPostToBeAdded
-    setTagToBeAdded
-    setTopicTagToBeAdded
-    setPermalinkToBeAdded
+    setUser
+    setCategory
+    setTopic
+    setPost
+    setTag
+    setTopicTag
+    setPermalink
+    setPostAction
     =
     let listTransform =
         [
-            (User, (copySectionFromListRecord columnValueForUserWithDefaults setUserToBeAdded));
-            (UserOptions, (copySectionFromListRecord columnValueForUserOptionsWithDefaults setUserToBeAdded));
-            (UserProfile, (copySectionFromListRecord columnValueForUserProfile setUserToBeAdded));
-            (UserStats, (copySectionFromListRecord columnValueForUserStatsWithDefaults setUserToBeAdded));
+            (User, (copySectionFromListRecord columnValueForUserWithDefaults setUser));
+            (UserOptions, (copySectionFromListRecord columnValueForUserOptionsWithDefaults setUser));
+            (UserProfile, (copySectionFromListRecord columnValueForUserProfile setUser));
+            (UserStats, (copySectionFromListRecord columnValueForUserStatsWithDefaults setUser));
 
-            (Category, (copySectionFromListRecord columnValueForCategory setCategoryToBeAdded));
+            (Category, (copySectionFromListRecord columnValueForCategory setCategory));
 
-            (Topic, (copySectionFromListRecord columnValueForTopicWithDefaults setTopicToBeAdded));
+            (Topic, (copySectionFromListRecord columnValueForTopicWithDefaults setTopic));
 
-            (Post, (copySectionFromListRecord columnValueForPost setPostToBeAdded));
+            (Post, (copySectionFromListRecord columnValueForPost setPost));
 
-            (Tag, (copySectionFromListRecord columnValueForTag setTagToBeAdded));
+            (Tag, (copySectionFromListRecord columnValueForTag setTag));
 
-            (TopicTag, (copySectionFromListRecord columnValueForTopicTag setTopicTagToBeAdded));
+            (TopicTag, (copySectionFromListRecord columnValueForTopicTag setTopicTag));
 
-            (Permalink, (copySectionFromListRecord columnValueForPermalink setPermalinkToBeAdded));
+            (Permalink, (copySectionFromListRecord columnValueForPermalink setPermalink));
+
+            (PostAction, (copySectionFromListRecord columnValueForPostAction setPostAction));
         ]
 
     let listLineWithRecordsAppended =

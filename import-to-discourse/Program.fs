@@ -27,10 +27,12 @@ let onArgumentsChecked
         ((Discourse.DumpSql.Parse.copySectionFromRecordType recordType sqlDumpListLine)
         |> Discourse.DumpSql.Parse.idMaxOrZero) + 1 + (Discourse.Config.idOffsetFromRecordType recordType)
 
-    let (listUser, listCategory, listTopic, listPost, listTag, listTopicTag) =
+    let (listUser, listCategory, listTopic, listPost, listTag, listTopicTag, listVote) =
         Import.mvcforum.importFromFileAtPath toBeImportedInputFilePath
 
-    let (setUser, setCategory, setTopic, setPost, setTag, setTopicTag, setPermalink)   =
+    let postActionTypeLikeId = Discourse.DumpSql.Parse.postActionTypeLikeId sqlDumpListLine
+
+    let (setUser, setCategory, setTopic, setPost, setTag, setTopicTag, setPermalink, setPostAction)   =
         Import.mvcforum.transformToDiscourse
             (listUser, (idBaseFromRecordType User))
             (listCategory, (idBaseFromRecordType Category))
@@ -39,6 +41,9 @@ let onArgumentsChecked
             (listTag, (idBaseFromRecordType Tag))
             (listTopicTag, (idBaseFromRecordType TopicTag))
             (idBaseFromRecordType Permalink)
+            listVote
+            (idBaseFromRecordType PostAction)
+            postActionTypeLikeId
 
     let modifiedDump =
         AddRecord.postgresqlDumpWithRecordsAdded
@@ -50,6 +55,7 @@ let onArgumentsChecked
             setTag
             setTopicTag
             setPermalink
+            setPostAction
 
     stopwatchMerge.Stop()
 

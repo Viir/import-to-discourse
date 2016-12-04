@@ -9,6 +9,7 @@ It builds the SQL code needed to add the content and adds it to the SQL dump scr
 + Topics
 + Tags on the topics
 + Posts
++ Upvotes on posts (mapped to likes in discourse)
 
 ## Permalinks
 With the software change, URLs for your content will also change.

@@ -55,6 +55,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Common.fs" />
     <Compile Include="Discourse.DbModel.Common.fs" />
     <Compile Include="Discourse.DbModel.User.fs" />
     <Compile Include="Discourse.DbModel.Category.fs" />
@@ -63,6 +64,7 @@
     <Compile Include="Discourse.DbModel.Tag.fs" />
     <Compile Include="Discourse.DbModel.TopicTag.fs" />
     <Compile Include="Discourse.DbModel.Permalink.fs" />
+    <Compile Include="Discourse.DbModel.PostAction.fs" />
     <Compile Include="PostContent.fs" />
     <Compile Include="Discourse.Config.fs" />
     <Compile Include="Discourse.DumpSql.Parse.fs" />

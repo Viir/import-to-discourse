@@ -10,6 +10,7 @@ let topicXPath = "//SetTopic/Topic"
 let postXPath = "//SetPost/Post"
 let tagXPath = "//SetTopicTag/TopicTag"
 let topicTagXPath = "//SetTopic_Tag/Topic_Tag"
+let voteXPath = "//SetVote/Vote"
 
 type User = 
     {
@@ -75,6 +76,15 @@ type TopicTag =
     {
         Topic_Id : string;
         TopicTag_Id : string;
+    }
+
+type Vote =
+    {
+        Id : string;
+        Amount : int;
+        DateVoted : DateTime;
+        Post_Id : string;
+        VotedByMembershipUser_Id : string;
     }
 
 type PermalinkSource =
@@ -191,6 +201,18 @@ let topicTagFromXmlElement (xmlElement : XmlElement) =
         TopicTag_Id = getColumnValue "TopicTag_Id"
     }
 
+let voteFromXmlElement (xmlElement : XmlElement) =
+    let getColumnValue = getValueFromSingleChildElementWithName xmlElement
+    let getColumnIntValue columnName = Int32.Parse (getColumnValue columnName)
+    let getColumnTimeValue columnName = DateTime.Parse (getColumnValue columnName)
+    {
+        Id = getColumnValue "Id"
+        Amount = getColumnIntValue "Amount"
+        DateVoted = getColumnTimeValue "DateVoted"
+        Post_Id = getColumnValue "Post_Id"
+        VotedByMembershipUser_Id = getColumnValue "VotedByMembershipUser_Id"
+    }
+
 let categoryDefinitionTopicId categoryId =
     categoryId + "-category-definition-topic"
 
@@ -274,6 +296,7 @@ let discoursePost discourseUserId discourseTopicId discoursePostNumber (post : P
         last_editor_id = None;
         last_version_at = post.DateEdited;
         sort_order = Some post_number;
+        like_count = 0;
     }
 
 let discourseTag (tag : Tag)
@@ -365,6 +388,9 @@ let transformToDiscourse
     ((listTag : Tag list), tagIdBase)
     ((listTopicTag : TopicTag list), topicTagIdBase)
     permalinkIdBase
+    (listVote : Vote list)
+    postActionIdBase
+    postActionTypeLikeIdOption
     =
     let discourseUserId userId =
         if userId = null
@@ -418,9 +444,32 @@ let transformToDiscourse
         listTopic
         |> List.map (fun topic -> {(discourseTopic discourseUserId discourseCategoryIdOption listPost topic) with id = (discourseTopicId topic.Id)})
 
+    let setPostAction =
+        match postActionTypeLikeIdOption with
+        | None -> []
+        | Some postActionTypeLikeId ->
+            listVote
+            |> List.filter (fun vote -> 1 <= vote.Amount)
+            |> List.mapi (fun index vote ->
+                {
+                    id = index + postActionIdBase
+                    post_id = discoursePostId vote.Post_Id
+                    user_id = discourseUserId vote.VotedByMembershipUser_Id
+                    post_action_type_id = postActionTypeLikeId
+                    created_at = vote.DateVoted
+                    updated_at = vote.DateVoted
+                } : Discourse.DbModel.PostAction.PostAction)
+    
+    let likeCountFromDiscoursePostId discoursePostId =
+        setPostAction
+        |> List.filter (fun action -> action.post_id = discoursePostId && (Some action.post_action_type_id) = postActionTypeLikeIdOption)
+        |> List.length
+
     let setPostDiscourse =
         listPost
-        |> List.map (fun post -> {(discoursePost discourseUserId discourseTopicId discoursePostNumber post) with id = (discoursePostId post.Id)})
+        |> List.map (fun post ->
+            {(discoursePost discourseUserId discourseTopicId discoursePostNumber post) with id = (discoursePostId post.Id)})
+        |> List.map (fun post -> { post with like_count = (likeCountFromDiscoursePostId post.id)})
 
     let setTagDiscourse =
         listTag
@@ -452,6 +501,7 @@ let transformToDiscourse
         |> List.concat
         |> List.mapi (fun index permalink ->
             {permalink with id = (index + permalinkIdBase)})
+
     (
         setUserDiscourse,
         setCategoryDiscourse,
@@ -459,7 +509,8 @@ let transformToDiscourse
         setPostDiscourse,
         setTagDiscourse,
         setTopicTagDiscourse,
-        setPermalinkDiscourseWithId
+        setPermalinkDiscourseWithId,
+        setPostAction
     )
 
 let importFromFileAtPath
@@ -498,4 +549,8 @@ let importFromFileAtPath
     let listTopicTag =
         setRecordFromXPathAndRecordConstructor topicTagXPath topicTagFromXmlElement
 
-    (listUser, listCategory, listTopic, listPost, listTag, listTopicTag)
+    let listVote =
+        setRecordFromXPathAndRecordConstructor voteXPath voteFromXmlElement
+        |> List.sortBy (fun vote -> vote.DateVoted)
+
+    (listUser, listCategory, listTopic, listPost, listTag, listTopicTag, listVote)

@@ -80,3 +80,14 @@ let idMaxOrZero copySection =
         |> List.map idFromRecord
         |> List.map System.Int32.Parse
     if 0 < (setId |> List.length) then setId |> List.max else 0
+
+let postActionTypeLikeId sqlDumpListLine =
+    let postActionTypeCopySection = copySectionFromRecordType PostActionType sqlDumpListLine
+    let typeLikeRecord =
+        postActionTypeCopySection.listRecord
+        |> List.tryFind (fun record ->
+            ((record |> Common.listFindTupleSndWhereFstEquals "name_key") = postActionLikeNameKey))
+
+    match typeLikeRecord with
+    | None -> None
+    | Some record -> Some (System.Int32.Parse (record |> idFromRecord))

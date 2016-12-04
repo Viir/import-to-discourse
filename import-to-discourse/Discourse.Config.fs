@@ -8,6 +8,7 @@ let columnValueNull = "\\N"
 
 let idColumnName = "id"
 
+let postActionLikeNameKey = "like"
 
 let tableNameFromRecordType recordType =
     match recordType with
@@ -21,6 +22,8 @@ let tableNameFromRecordType recordType =
     | Tag -> "tags"
     | TopicTag -> "topic_tags"
     | Permalink -> "permalinks"
+    | PostActionType -> "post_action_types"
+    | PostAction -> "post_actions"
 
 
 let idOffsetFromRecordType recordType =
