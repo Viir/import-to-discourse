@@ -30,7 +30,7 @@ let onArgumentsChecked
     let (listUser, listCategory, listTopic, listPost, listTag, listTopicTag) =
         Import.mvcforum.importFromFileAtPath toBeImportedInputFilePath
 
-    let (setUser, setCategory, setTopic, setPost, setTag, setTopicTag)   =
+    let (setUser, setCategory, setTopic, setPost, setTag, setTopicTag, setPermalink)   =
         Import.mvcforum.transformToDiscourse
             (listUser, (idBaseFromRecordType User))
             (listCategory, (idBaseFromRecordType Category))
@@ -38,6 +38,7 @@ let onArgumentsChecked
             (listPost, (idBaseFromRecordType Post))
             (listTag, (idBaseFromRecordType Tag))
             (listTopicTag, (idBaseFromRecordType TopicTag))
+            (idBaseFromRecordType Permalink)
 
     let modifiedDump =
         AddRecord.postgresqlDumpWithRecordsAdded
@@ -48,6 +49,7 @@ let onArgumentsChecked
             setPost
             setTag
             setTopicTag
+            setPermalink
 
     stopwatchMerge.Stop()
 

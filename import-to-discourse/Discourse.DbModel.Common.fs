@@ -18,6 +18,7 @@ type RecordType =
     | Post
     | Tag
     | TopicTag
+    | Permalink
 
 let columnValueWithDefaults (defaults : (string * columnValue) list) callbackNoDefault columnName =
     let valueFromDefault =

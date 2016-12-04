@@ -77,6 +77,16 @@ type TopicTag =
         TopicTag_Id : string;
     }
 
+type PermalinkSource =
+    | Category of Category
+    | Topic of Topic
+
+let permalinkSourceUrlFromCategory (category : Category) =
+    "cat/" + category.Slug
+
+let permalinkSourceUrlFromTopic (topic : Topic) =
+    "thread/" + topic.Slug
+
 let dictWithIndexAsKey listRecord =
     listRecord |> List.mapi (fun record index -> (record, index)) |> dict
 
@@ -287,6 +297,34 @@ let discourseTopicTag discourseTopicId discourseTagId (topicFromId : string -> T
         updated_at = None
     }
 
+let discoursePermalinkFromCategoryAndTopic url categoryId topicId
+    : Discourse.DbModel.Permalink.Permalink =
+    {
+        id = -1
+        url = url
+        category_id = categoryId
+        topic_id = topicId
+        post_id = None
+        external_url = null
+        created_at = Some DateTime.UtcNow
+        updated_at = None
+    }
+
+let discoursePermalinkFromPermalinkSource discourseCategoryId discourseTopicId permalinkSource
+    : Discourse.DbModel.Permalink.Permalink =
+    match permalinkSource with
+    | Category category ->
+        discoursePermalinkFromCategoryAndTopic
+            (permalinkSourceUrlFromCategory category)
+            (Some (discourseCategoryId category.Id))
+            None
+    | Topic topic ->
+        discoursePermalinkFromCategoryAndTopic
+            (permalinkSourceUrlFromTopic topic)
+            None
+            (Some (discourseTopicId topic.Id))
+
+
 let categoryDefinitionTopicAndPostFromCategory
     discourseCategoryId
     (category : Category)
@@ -326,6 +364,7 @@ let transformToDiscourse
     ((listPostLessCategoryDefinition : Post list), postIdBase)
     ((listTag : Tag list), tagIdBase)
     ((listTopicTag : TopicTag list), topicTagIdBase)
+    permalinkIdBase
     =
     let discourseUserId userId =
         if userId = null
@@ -392,7 +431,36 @@ let transformToDiscourse
         |> List.mapi (fun index topicTag ->
             {(discourseTopicTag discourseTopicId discourseTagId topicFromId topicTag) with id = (index + topicTagIdBase)})
 
-    (setUserDiscourse, setCategoryDiscourse, setTopicDiscourse, setPostDiscourse, setTagDiscourse, setTopicTagDiscourse)
+    let setPermalinkCategory =
+        listCategory
+        |> List.map (fun category ->
+            discoursePermalinkFromCategoryAndTopic
+                (permalinkSourceUrlFromCategory category)
+                (discourseCategoryIdOption category.Id)
+                None)
+
+    let setPermalinkTopic =
+        listTopicLessCategoryDefinition
+        |> List.map (fun topic ->
+            discoursePermalinkFromCategoryAndTopic
+                (permalinkSourceUrlFromTopic topic)
+                None
+                (Some (discourseTopicId topic.Id)))
+
+    let setPermalinkDiscourseWithId =
+        [ setPermalinkCategory; setPermalinkTopic ]
+        |> List.concat
+        |> List.mapi (fun index permalink ->
+            {permalink with id = (index + permalinkIdBase)})
+    (
+        setUserDiscourse,
+        setCategoryDiscourse,
+        setTopicDiscourse,
+        setPostDiscourse,
+        setTagDiscourse,
+        setTopicTagDiscourse,
+        setPermalinkDiscourseWithId
+    )
 
 let importFromFileAtPath
     filePath

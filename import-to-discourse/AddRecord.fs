@@ -10,6 +10,7 @@ open Discourse.DbModel.Topic
 open Discourse.DbModel.Post
 open Discourse.DbModel.Tag
 open Discourse.DbModel.TopicTag
+open Discourse.DbModel.Permalink
 open Discourse.DumpSql.Parse
 
 
@@ -102,6 +103,7 @@ let postgresqlDumpWithRecordsAdded
     setPostToBeAdded
     setTagToBeAdded
     setTopicTagToBeAdded
+    setPermalinkToBeAdded
     =
     let listTransform =
         [
@@ -119,6 +121,8 @@ let postgresqlDumpWithRecordsAdded
             (Tag, (copySectionFromListRecord columnValueForTag setTagToBeAdded));
 
             (TopicTag, (copySectionFromListRecord columnValueForTopicTag setTopicTagToBeAdded));
+
+            (Permalink, (copySectionFromListRecord columnValueForPermalink setPermalinkToBeAdded));
         ]
 
     let listLineWithRecordsAppended =

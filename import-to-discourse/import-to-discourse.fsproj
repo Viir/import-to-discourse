@@ -62,6 +62,7 @@
     <Compile Include="Discourse.DbModel.Post.fs" />
     <Compile Include="Discourse.DbModel.Tag.fs" />
     <Compile Include="Discourse.DbModel.TopicTag.fs" />
+    <Compile Include="Discourse.DbModel.Permalink.fs" />
     <Compile Include="PostContent.fs" />
     <Compile Include="Discourse.Config.fs" />
     <Compile Include="Discourse.DumpSql.Parse.fs" />

@@ -20,6 +20,7 @@ let tableNameFromRecordType recordType =
     | Post -> "posts"
     | Tag -> "tags"
     | TopicTag -> "topic_tags"
+    | Permalink -> "permalinks"
 
 
 let idOffsetFromRecordType recordType =
