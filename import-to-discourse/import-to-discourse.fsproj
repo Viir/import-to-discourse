@@ -68,6 +68,7 @@
     <Compile Include="PostContent.fs" />
     <Compile Include="Discourse.Config.fs" />
     <Compile Include="Discourse.DumpSql.Parse.fs" />
+    <Compile Include="Discourse.DumpSql.UpdateSequence.fs" />
     <Compile Include="AddRecord.fs" />
     <Compile Include="Import.mvcforum.fs" />
     <Compile Include="Program.fs" />

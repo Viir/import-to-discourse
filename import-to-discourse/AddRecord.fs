@@ -129,13 +129,17 @@ let postgresqlDumpWithRecordsAdded
             (PostAction, (copySectionFromListRecord columnValueForPostAction setPostAction));
         ]
 
+    let listLineTransformFromTransform (recordType, transform)
+        : ((string list) -> (string list)) =
+        (fun listLine ->
+            let copySectionAdd = (listLine |> copySectionFromRecordType recordType) |> transform
+            listLine |> withCopySectionAppended copySectionAdd)
+
     let listLineWithRecordsAppended =
-        listTransform
-        |> List.fold (fun state (recordType, transform) ->
-            let copySection = state |> copySectionFromRecordType recordType
-            let copySectionAdd = copySection |> transform
-            state |> withCopySectionAppended copySectionAdd)
+        withListTransformApplied
+            (listTransform
+            |> List.map listLineTransformFromTransform)
             postgresqlDumpListLine
 
-    listLineWithRecordsAppended |> List.toArray
+    listLineWithRecordsAppended
 

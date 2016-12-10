@@ -25,7 +25,7 @@ let onArgumentsChecked
 
     let idBaseFromRecordType recordType =
         ((Discourse.DumpSql.Parse.copySectionFromRecordType recordType sqlDumpListLine)
-        |> Discourse.DumpSql.Parse.idMaxOrZero) + 1 + (Discourse.Config.idOffsetFromRecordType recordType)
+        |> Discourse.DumpSql.Parse.idMaxOrZero) + 1
 
     let (listUser, listCategory, listTopic, listPost, listTag, listTopicTag, listVote) =
         Import.mvcforum.importFromFileAtPath toBeImportedInputFilePath
@@ -56,6 +56,7 @@ let onArgumentsChecked
             setTopicTag
             setPermalink
             setPostAction
+        |> Discourse.DumpSql.UpdateSequence.withSequenceIdUpdatedForSupportedRecordTypes
 
     stopwatchMerge.Stop()
 
