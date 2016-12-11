@@ -35,3 +35,17 @@ Then run the import tool and supply the following arguments:
 
 The tool then writes an sql script with the data merged from both databases into a new file.
 After gzipping, you can apply it to your discourse instance using the restore function.
+
+
+```
+K:\BotEngine.Forum.Upgrade>tool\import_to_discourse.exe botengine-forum-2016-12-10-142315-v20161205065743.sql BotEngine.Forum.mvcforum.Export.xml
+Tool from https://github.com/Viir/import-to-discourse to import from mvcforum to discourse.
+Warning: diagnostics are not implemented. For example, importing a user with an email address that was already present in the database was observed to result in a reset of discourse.
+Press key to continue.
+Reading discourse database dump from file: "botengine-forum-2016-12-10-142315-v20161205065743.sql"
+Reading data to be imported from file: "BotEngine.Forum.mvcforum.Export.xml"
+Imported 162 user accounts, 9 categories, 93 topics and 698 posts in 3887 ms.
+Starting to write sql script to file botengine-forum-2016-12-10-142315-v20161205065743.sql.with.imported.2016-12-10T142808.sql
+Completed in 4004 ms.
+
+```
