@@ -36,6 +36,9 @@ Then run the import tool and supply the following arguments:
 The tool then writes an sql script with the data merged from both databases into a new file.
 After gzipping, you can apply it to your discourse instance using the restore function.
 
+## Tested versions
+The tool has been tested for import from MVCForum v1.7 to Discourse v1.7.0. Your milage may vary incase you are using different versions.
+
 
 ```
 K:\BotEngine.Forum.Upgrade>tool\import_to_discourse.exe botengine-forum-2016-12-10-142315-v20161205065743.sql BotEngine.Forum.mvcforum.Export.xml
