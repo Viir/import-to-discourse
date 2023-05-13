@@ -1,7 +1,9 @@
 # Import to discourse
 
-This is used for importing content from [MVCForum](http://www.mvcforum.com/) to [discourse](http://www.discourse.org).
+This is used for importing content from [MVCForum](http://www.mvcforum.com/) to [discourse](https://www.discourse.org).
 It builds the SQL code needed to add the content and adds it to the SQL dump script obtained from a discourse backup.
+
+For more background, see the blog post on the development at <https://michaelrätzel.com/blog/migrating-the-botengine-forum-to-discourse>
 
 ## What can be imported?
 + User accounts
